@@ -1,0 +1,7 @@
+
+# AIOS-FullStack Framework Files (auto-managed - do not edit)
+.aios-core/
+node_modules/@aios/
+outputs/minds/
+.aios-installation-config.yaml
+# End AIOS-FullStack auto-managed section

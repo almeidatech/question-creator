@@ -7,9 +7,10 @@
 ## 📋 Índice de Epics
 
 1. [Epic 1: Core Features & Reputation System](#epic-1-core-features--reputation-system-mvp-phase-1)
-2. [Epic 2: Exam Management System](#epic-2-exam-management-system-phase-2)
-3. [Epic 3: Admin Dashboard & CSV Import](#epic-3-admin-dashboard--csv-import-phase-3)
-4. [Epic 4: QA, Performance & Launch Readiness](#epic-4-qa-performance--launch-readiness-phase-4)
+2. [Epic 1B: RAG System (Question Generation)](#epic-1b-rag-system--question-generation-mvp-weeks-7-8)
+3. [Epic 2: Exam Management System](#epic-2-exam-management-system-phase-2)
+4. [Epic 3: Admin Dashboard & CSV Import](#epic-3-admin-dashboard--csv-import-phase-3)
+5. [Epic 4: QA, Performance & Launch Readiness](#epic-4-qa-performance--launch-readiness-phase-4)
 
 ---
 
@@ -354,6 +355,171 @@ Estabelecer a base do Question Creator MVP com geração de questões via IA, si
 - [ ] Stories properly sequenced (auth → generation → submission) ✅
 - [ ] Success criteria clear and measurable ✅
 - [ ] All dependencies identified (none blocking) ✅
+
+---
+
+## Epic 1B: RAG System & Question Generation (MVP Weeks 7-8)
+
+**Duration:** 2 weeks (Weeks 7-8) | **Effort:** 42h | **Team:** 1 Backend + 1 Architect + @data-architect
+
+**Epic Goal:**
+
+Implement PostgreSQL full-text search (FTS) RAG system for AI question generation with dual-corpus architecture. Prevent quality degradation by isolating AI-generated questions from the real exam corpus. Enable students to generate unlimited study questions on demand while maintaining legal/pedagogical accuracy.
+
+**Key Features:**
+
+### 1. FTS-Based RAG Retrieval (MVP - Week 3)
+
+- PostgreSQL full-text search (tsvector) on question text + topics
+- Retrieve 5-10 similar real exam questions by topic + difficulty
+- Latency: <100ms per query
+- Source filtering: `WHERE source_type='real_exam'` ALWAYS
+- Redis caching (24h TTL) for generated question lists
+- Fallback: Return real questions if Claude timeout (>30s)
+
+**Technical Implementation:**
+```sql
+-- FTS Index
+CREATE INDEX idx_questions_fts ON questions USING GIN(
+  to_tsvector('portuguese', question_text || ' ' || option_a || ' ' || option_b || ' ' || option_c)
+);
+
+-- RAG Query (IMMUTABLE)
+SELECT q.* FROM questions q
+JOIN question_sources qs ON q.id = qs.question_id
+WHERE qs.source_type = 'real_exam'
+  AND q.difficulty = $difficulty
+  AND to_tsvector('portuguese', q.question_text) @@ plainto_tsquery('portuguese', $search_term)
+LIMIT 10;
+```
+
+### 2. Dual-Corpus Architecture
+
+- `question_sources` table: source_type enum (real_exam | ai_generated | expert_approved)
+- RAG corpus isolation: rag_eligible=false for AI-generated questions
+- Audit trigger: Log all source_type changes for compliance
+- Monthly contamination check: Automated alert if AI-generated in RAG corpus
+- Policy: AI-generated questions NEVER influence future generations
+
+**Table Structure:**
+```sql
+CREATE TABLE question_sources (
+  id UUID PRIMARY KEY,
+  question_id UUID UNIQUE REFERENCES questions(question_id),
+  source_type ENUM('real_exam', 'ai_generated', 'expert_approved'),
+  rag_eligible BOOLEAN DEFAULT false,
+  created_at TIMESTAMP,
+  approved_at TIMESTAMP NULL,
+  approved_by UUID NULL
+);
+```
+
+### 3. Claude Integration (FTS RAG)
+
+- Prompt template: Constitutional Law + RAG context + few-shot examples
+- Token optimization: Max 500 tokens output
+- Temperature: 0.5 (less creative, more consistent with exam patterns)
+- Fallback: Rate limit handling + timeout recovery
+- Expert review gate: 100% of AI-generated questions reviewed pre-launch
+- Cost: ~$0.022 per batch of 5 questions
+
+**Prompt Structure:**
+```
+You are a Constitutional Law expert. Generate ${count} unique exam-style questions.
+
+Context (real exam patterns):
+${retrievedQuestions}
+
+Requirements:
+- Follow CESPE/FCC style (multiple choice, 1 correct answer)
+- Realistic difficulty: ${difficulty}
+- Topic: ${topic}
+- 100% legal accuracy
+- Return as JSON array
+```
+
+### 4. Phase 2 Upgrade: pgvector Hybrid Search (Week 4)
+
+- Create pgvector extension in Supabase PostgreSQL
+- Generate OpenAI embeddings for 13.917 Constitutional Law questions
+- Batch job: ~2-3 hours for full vectorization
+- Hybrid RAG: Merge FTS (BM25) + vector similarity (cosine) rankings
+- Increased context: 5 → 10 similar questions
+- Latency: <300ms query + vector similarity
+- Maintain source_type filtering
+
+**Upgrade Path:**
+```sql
+-- Phase 2: Vector Index
+CREATE INDEX idx_embeddings_vector ON question_embeddings
+USING HNSW(embedding vector_cosine_ops)
+WITH (m=16, ef_construction=200);
+
+-- Hybrid Query
+SELECT q.* FROM questions q
+JOIN question_sources qs ON q.id = qs.question_id
+WHERE qs.source_type = 'real_exam'
+ORDER BY (FTS_rank + VECTOR_similarity) / 2 DESC
+LIMIT 10;
+```
+
+**Stories (Epic 1B):**
+
+| Story | Duration | Effort | Description |
+|-------|----------|--------|-------------|
+| US-1B.1: Dual-Corpus Schema | 1d | 4h | Create question_sources table + audit trigger + indexes |
+| US-1B.2: FTS Query Development | 2d | 8h | Write RAG retrieval queries + performance testing |
+| US-1B.3: Claude Integration | 2d | 8h | Integrate Claude API + prompt engineering + fallback handling |
+| US-1B.4: Cache Strategy | 1d | 4h | Redis cache (24h TTL) + cache invalidation |
+| US-1B.5: Expert Review Queue | 1.5d | 6h | Create review interface + SLA tracking |
+| US-1B.6: Corpus Isolation Testing | 1.5d | 6h | Unit + integration tests for source_type filtering |
+| US-1B.7: pgvector Setup (Phase 2) | 1d | 6h | Batch embeddings job + index creation + testing |
+
+**Success Criteria:**
+
+- ✅ Generation latency P95 < 2-3 seconds (FTS) → <2s (Phase 2 pgvector)
+- ✅ Expert approval rate >80% on first review
+- ✅ Error rate <5% (after expert review)
+- ✅ Cache hit rate >70%
+- ✅ Corpus contamination check: 0 AI-generated in RAG queries (daily verification)
+- ✅ Load test: 100 concurrent generation requests, all <3s
+- ✅ 20+ AI-generated questions successfully reviewed + approved
+
+**Risk Mitigations:**
+
+| Risk | Severity | Mitigation |
+|------|----------|-----------|
+| LLM Hallucination | CRITICAL | Expert review 100% before user exposure + RAG grounding |
+| Corpus Contamination | HIGH | source_type filtering + audit trigger + daily check |
+| FTS Performance Degradation | MEDIUM | Index monitoring + quarterly reindex + fallback to keyword search |
+| Claude API Timeout | MEDIUM | Return real questions fallback + rate limiting + retry logic |
+
+**Dependencies:**
+
+- @dev: Claude API integration + FTS query development
+- @architect: RAG architecture + schema design + monitoring setup
+- @data-architect: Schema design review + query optimization + index strategy
+- CSV Import (US-5.1): Must complete Week 2 (13.917 questions required for RAG corpus)
+
+**Quality Gates:**
+
+**Pre-Commit:**
+- source_type filtering validation (WHERE clause audit)
+- FTS query performance test (<100ms)
+- Input validation (Zod schemas)
+- SQL injection prevention
+
+**Pre-PR:**
+- Corpus isolation tests (verify no AI-generated in RAG)
+- Load test 50 concurrent requests
+- @architect review: RAG architecture + ADRs
+- @data-architect review: Schema + indexes
+
+**Pre-Deployment:**
+- Production load test (100 concurrent)
+- Expert approval rate validation
+- Monitoring setup: DataDog/New Relic alerts
+- Fallback mechanism verified
 
 ---
 

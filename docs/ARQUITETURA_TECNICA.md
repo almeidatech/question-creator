@@ -33,7 +33,7 @@
 | **Cache** | Upstash Redis | Caching de questões, RAG |
 | **Infra** | Vercel + Supabase Cloud | Deploy, escalabilidade, backup |
 
-### Diagrama de Arquitetura
+### Diagrama de Arquitetura (MVP com RAG)
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
@@ -53,26 +53,49 @@
          ┌──────────┴─────────────────┴──────────┐
          │      BACKEND LOGIC & SERVICES         │
          ├────────────────────────────────────────┤
-         │ • Question Generation                 │
+         │ • Question Generation (Claude RAG)   │
          │ • CSV Import Pipeline                 │
          │ • Analytics & Stats                   │
          │ • Reputation System                   │
+         │ • RAG Retrieval (FTS MVP/pgvector P2)│
          └──────────┬──────────────┬──────────────┘
                     │              │
        ┌────────────▼──┐  ┌────────▼──────────┐
        │  Anthropic    │  │  Supabase         │
-       │  API (Claude) │  │  PostgreSQL + RLS │
-       │  + RAG        │  │  + Auth + Storage │
+       │  Claude 3.5   │  │  PostgreSQL +RLS  │
+       │  Sonnet API   │  │  + FTS + Auth     │
+       │  (Generation) │  │  + pgvector (P2)  │
        └───────────────┘  └───────┬───────────┘
-                                  │
-                    ┌─────────────┴──────────┐
-                    │                        │
-              ┌─────▼────┐         ┌────────▼────┐
-              │  Upstash │         │  Question   │
-              │  Redis   │         │  Bank CSV   │
-              │ (Cache)  │         │  Files      │
-              └──────────┘         └─────────────┘
+              ▲                    │
+              │         ┌──────────┴─────────┐
+              │         │                    │
+         ┌────┴─────┐   │     ┌──────────────▼─────┐
+         │RAG Layer │   │     │ question_sources   │
+         │FTS MVP   │   │     │ (source_type=real) │
+         │pgvector  │   │     │ Dual-Corpus        │
+         │Phase 2   │   │     │ Architecture       │
+         └──────────┘   │     └────────────────────┘
+                        │
+         ┌──────────────┴──────────┐
+         │                         │
+    ┌────▼────┐         ┌────────▼────┐
+    │ Upstash │         │  Question   │
+    │ Redis   │         │  Bank CSV   │
+    │ (Cache) │         │  Files      │
+    │ 24h TTL │         │  (13.9k+)   │
+    └─────────┘         └─────────────┘
 ```
+
+**RAG Pipeline (MVP Week 3):**
+1. User requests: Generate 5 questions (topic, difficulty)
+2. Check Redis cache (24h TTL)
+3. If miss: FTS query to retrieve 5-10 similar real exam questions
+4. Send to Claude with: [prompt + FTS-retrieved context]
+5. Claude generates new questions + stores with source_type='ai_generated'
+6. Cache result (Redis 24h)
+7. Return to user
+
+**Key Change:** FTS uses PostgreSQL tsvector (no separate Pinecone/Weaviate)
 
 ---
 
@@ -535,6 +558,75 @@ const QuestionGenerateSchema = z.object({
 - 🚀 Code splitting automático
 - 🚀 Lazy loading de componentes
 - 🚀 React Query para caching de dados
+
+---
+
+## Architecture Decision Record (ADR)
+
+### ADR-001: PostgreSQL FTS + pgvector for RAG (not Pinecone/Weaviate)
+
+**Status:** ✅ APPROVED | **Date:** Feb 1, 2026 | **Decision Maker:** @architect (Aria)
+
+**Decision:**
+- MVP (Week 3): Use PostgreSQL full-text search (tsvector) for RAG retrieval
+- Phase 2 (Week 4): Upgrade to pgvector (native PostgreSQL) for hybrid search
+- Defer: Pinecone/Weaviate only if scale exceeds 1M questions OR latency issues detected
+
+**Rationale:**
+1. **Simplicity:** FTS already in PostgreSQL, zero additional infrastructure
+2. **Cost:** ~$81/month for pgvector Phase 2 vs ~$150-300/month for Pinecone
+3. **Performance:** FTS <100ms, pgvector hybrid <300ms (acceptable)
+4. **Operational:** Single database reduces complexity
+5. **Scalability:** pgvector handles 1M+ questions easily on Supabase Pro
+
+**Consequences:**
+- RAG queries must include `WHERE source_type='real_exam'` filtering
+- Monitor FTS index performance (reindex quarterly if needed)
+- pgvector integration in Phase 2 Week 4 adds ~4-5 days work
+- If latency exceeds 300ms, escalate Pinecone evaluation
+
+**Alternatives Considered:**
+- ❌ Pinecone: Overkill for MVP, higher cost, external dependency
+- ❌ Elasticsearch: Operational complexity, separate cluster management
+- ❌ Vector DB separation: Network latency, synchronization overhead
+
+**Related Decisions:**
+- ADR-002: Dual-Corpus Architecture (source_type filtering)
+
+---
+
+### ADR-002: Dual-Corpus Architecture (source_type filtering)
+
+**Status:** ✅ APPROVED | **Date:** Feb 1, 2026 | **Decision Maker:** @architect (Aria)
+
+**Decision:**
+- Create `question_sources` table with `source_type` enum: {real_exam, ai_generated, expert_approved}
+- RAG corpus **ONLY** uses `source_type='real_exam'` questions
+- AI-generated questions isolated: `rag_eligible=false`
+- Monthly audit to verify zero contamination
+
+**Rationale:**
+- **Prevent Quality Degradation:** AI-generated questions NEVER influence future generations
+- **Ground Truth:** RAG always grounded in real exam patterns
+- **Error Isolation:** Prevents "fiction influencing fiction" amplification
+- **Type Safety:** Database-level enforcement with enum type
+
+**Implementation:**
+```sql
+-- All RAG queries MUST include:
+WHERE source_type = 'real_exam' AND rag_eligible = TRUE
+
+-- Audit check (daily):
+SELECT COUNT(*) FROM question_sources
+WHERE source_type='ai_generated' AND rag_eligible=true;
+-- Expected: 0 (alert if > 0)
+```
+
+**Consequences:**
+- Additional column overhead (minimal)
+- Audit trigger for change tracking
+- Monthly compliance check required
+- Clear governance policy for question status transitions
 
 ---
 

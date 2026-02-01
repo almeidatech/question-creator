@@ -7,11 +7,13 @@
 ## What Was Done
 
 ### 1. Strategic Analysis & Validation
+
 - ✅ **@analyst (Atlas):** Researched RAG strategy, validated feasibility, estimated costs
 - ✅ **@pm (Morgan):** Validated decisions, approved timeline, confirmed trade-offs
 - ✅ **@architect (Aria):** Reviewed architecture, created ADRs, assessed technical risks
 
 ### 2. PRD v1.1 Updated
+
 - ✅ RAG strategy finalized (FTS MVP → pgvector Phase 2)
 - ✅ Dual-corpus architecture documented
 - ✅ Comprehensive 6-tier KPI framework
@@ -19,6 +21,7 @@
 - ✅ Infrastructure costs updated (~$1.45k MVP + $81/mo Phase 2)
 
 ### 3. Architecture Documentation Updated
+
 - ✅ **ARQUITETURA_TECNICA.md:** RAG diagram, ADRs, dual-corpus explanation
 - ✅ **EPICS.md:** Epic 1B created with 7 detailed stories
 - ✅ **stories/02-question-generation-rag.md:** Complete story breakdown
@@ -34,6 +37,7 @@
 **What:** Use PostgreSQL full-text search for MVP (Week 3), upgrade to pgvector Phase 2 (Week 4)
 
 **Why:**
+
 - Simplicity: FTS already in PostgreSQL, zero additional infrastructure
 - Cost: ~$81/month incremental for pgvector (vs ~$150-300 for Pinecone)
 - Performance: <100ms FTS, <300ms hybrid (acceptable)
@@ -48,6 +52,7 @@
 **What:** Separate real_exam questions (RAG corpus) from ai_generated questions
 
 **Schema:**
+
 ```sql
 question_sources (
   source_type ENUM('real_exam', 'ai_generated', 'expert_approved'),
@@ -56,6 +61,7 @@ question_sources (
 ```
 
 **RAG Filter (IMMUTABLE):**
+
 ```sql
 WHERE source_type='real_exam' AND rag_eligible=true
 ```
@@ -63,6 +69,7 @@ WHERE source_type='real_exam' AND rag_eligible=true
 **Why:** Prevent "fiction influencing fiction" through iterative contamination
 
 **Risk Mitigation:**
+
 - Audit trigger logs all changes
 - Daily contamination check (must = 0)
 - Monthly expert audit
@@ -92,7 +99,7 @@ WHERE source_type='real_exam' AND rag_eligible=true
 ### Sprint 7-8 (Weeks 7-8) - MVP: FTS-Based RAG
 
 | Story | Duration | Effort | Owner | Status |
-|-------|----------|--------|-------|--------|
+| ----- | -------- | ------ | ----- | ------ |
 | US-1B.1: Dual-Corpus Schema | 1d | 4h | @data-architect + @dev | Ready |
 | US-1B.2: FTS Query Development | 2d | 8h | @dev + @data-architect | Ready |
 | US-1B.3: Claude Integration | 2d | 8h | @dev | Ready |
@@ -104,7 +111,7 @@ WHERE source_type='real_exam' AND rag_eligible=true
 ### Phase 2 (Week 4) - Optional pgvector Upgrade
 
 | Story | Duration | Effort | Owner |
-|-------|----------|--------|-------|
+| ----- | -------- | ------ | ----- |
 | US-1B.7: pgvector Setup | 3-4d | 6h | @dev + @data-architect |
 
 ---
@@ -113,7 +120,7 @@ WHERE source_type='real_exam' AND rag_eligible=true
 
 ### MVP (Week 3)
 
-```
+```text
 Cloud compute:    $500-1,000
 Database:         $200-500
 Redis:            $20-50
@@ -127,7 +134,7 @@ Per User (1k):   ~$1.45/user/month
 
 ### Phase 2 (Week 4+)
 
-```
+```text
 Same as MVP + pgvector enhancement:
 PostgreSQL + pgvector:  +$50-100
 OpenAI Embeddings:      +$20-40
@@ -141,22 +148,26 @@ TOTAL:                  ~$1,531/month
 ## Quality Metrics (KPIs)
 
 ### Tier 1: Quality (CRITICAL - MVP Gating)
+
 - Expert approval rate: >80% ✅ Target
 - Error rate: <5% ✅ Target
 - Reputation score avg: 7+/10 ✅ Target
 - Corpus contamination: 0 AI-generated in RAG ✅ Target
 
 ### Tier 2: UX (IMPORTANT)
+
 - Generation latency P95: <2-3s (FTS) → <2s (Phase 2)
 - Cache hit rate: >70%
 - FTS query: <100ms
 
 ### Tier 3: Business (IMPORTANT)
+
 - Active users: 50+ by Week 4
 - 1-week retention: 70%+
 - Cost per user: <$0.10/month
 
 ### Tier 4: Technical (SUPPORT)
+
 - System uptime: 99%+
 - API error rate: <0.5%
 - Database query latency: <100ms
@@ -166,7 +177,7 @@ TOTAL:                  ~$1,531/month
 ## Risk Assessment
 
 | Risk | Severity | Mitigation | Status |
-|------|----------|-----------|--------|
+| ---- | -------- | ---------- | ------ |
 | LLM Hallucination | CRITICAL | Expert review 100% + RAG grounding | ✅ Mitigated |
 | Corpus Contamination | HIGH | source_type filtering + daily audit | ✅ Mitigated |
 | FTS Performance Degradation | MEDIUM | Index monitoring + pgvector fallback | ✅ Mitigated |
@@ -203,20 +214,20 @@ TOTAL:                  ~$1,531/month
 
 ### New Files
 
-5. **docs/RAG_ARCHITECTURE_SUMMARY.md**
+1. **docs/RAG_ARCHITECTURE_SUMMARY.md**
    - Executive summary of entire system
    - ADRs + rationale
    - Monitoring setup
    - Developer onboarding checklist
 
-6. **docs/IMPLEMENTATION_CONTEXT.md**
+2. **docs/IMPLEMENTATION_CONTEXT.md**
    - Developer quick reference
    - Code examples for each story
    - Database schema + SQL
    - Testing patterns
    - Cost tracking implementation
 
-7. **CONTEXT_SUMMARY.md** (this file)
+3. **CONTEXT_SUMMARY.md** (this file)
    - Consolidated overview
    - What was done + decisions
    - Timeline + effort
@@ -227,15 +238,18 @@ TOTAL:                  ~$1,531/month
 ## Next Steps (Week 2 - Before Sprint Starts)
 
 ### Product Team
+
 - [ ] @pm: Confirm timeline + budget allocation
 - [ ] @pm: Prepare expert reviewer recruitment (2-3 Constitutional Law SMEs)
 
 ### Architecture Team
+
 - [ ] @architect: Review ADRs + monitoring strategy
 - [ ] @data-architect: Review schema + provide refinements
 - [ ] @architect: Finalize alert thresholds + escalation paths
 
 ### Development Team
+
 - [ ] @dev: Read all documentation (PRD v1.1, ARQUITETURA_TECNICA, EPICS, IMPLEMENTATION_CONTEXT)
 - [ ] @dev: Setup local PostgreSQL with tsvector support
 - [ ] @dev: Configure Upstash Redis account
@@ -243,6 +257,7 @@ TOTAL:                  ~$1,531/month
 - [ ] @dev: Verify CSV import (US-5.1) will be complete by end of Week 2
 
 ### QA Team
+
 - [ ] @qa: Plan test strategy for corpus isolation
 - [ ] @qa: Prepare load testing scenarios (100 concurrent generation requests)
 - [ ] @qa: Setup monitoring validation checklists
@@ -252,16 +267,19 @@ TOTAL:                  ~$1,531/month
 ## Sprint 7-8 Start Checklist
 
 **Day 1 (Start of Week 7):**
+
 - [ ] Team kickoff: Review IMPLEMENTATION_CONTEXT.md
 - [ ] Database schema PR: US-1B.1 begins
 - [ ] FTS index setup starts
 
 **Day 5 (Mid-Week 7):**
+
 - [ ] US-1B.1 merged
 - [ ] US-1B.2 (FTS queries) in progress
 - [ ] US-1B.3 (Claude API) ready to start
 
 **Day 10 (Mid-Week 8):**
+
 - [ ] US-1B.2-3 merged
 - [ ] Testing + review queue (US-1B.5-6) in progress
 
@@ -275,7 +293,7 @@ TOTAL:                  ~$1,531/month
 ## Approval Status
 
 | Stakeholder | Decision | Status |
-|-------------|----------|--------|
+| ----------- | -------- | ------ |
 | @pm (Morgan) | Strategy + Timeline | ✅ APPROVED |
 | @architect (Aria) | Architecture + ADRs | ✅ APPROVED |
 | @analyst (Atlas) | Feasibility + Costs | ✅ APPROVED |
@@ -287,7 +305,7 @@ TOTAL:                  ~$1,531/month
 ## Contact Matrix
 
 | Question | Owner |
-|----------|-------|
+| -------- | ----- |
 | Product strategy + timeline | @pm (Morgan) |
 | System architecture + ADRs | @architect (Aria) |
 | Database schema + queries | @data-architect (Dara) |
@@ -299,6 +317,7 @@ TOTAL:                  ~$1,531/month
 ## Success Criteria
 
 MVP (End of Week 8) is successful when:
+
 - ✅ Generation latency P95 < 2-3s
 - ✅ Expert approval rate >80%
 - ✅ Error rate <5%

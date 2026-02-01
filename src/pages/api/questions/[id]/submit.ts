@@ -1,21 +1,23 @@
 /**
- * API Endpoint: POST /api/admin/reviews
+ * API Endpoint: POST /api/questions/{id}/submit
  * US-1.3: Question Submission & Reputation System
  *
- * Allows admins to approve/reject flagged questions
- * Updates reputation and question status
+ * Records answer submission, validates correctness, and returns reputation update
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import {
-  reviewDecisionSchema,
-  processReviewDecision,
-  ReviewDecisionResponse,
-} from '../../../../services/admin/review.service';
-import {
-  verifyAdminAccess,
-} from '../../../../services/admin/review.service';
+import { submissionSchema, processSubmission } from '../../../../services/questions/submission.service';
 import { getSupabaseClient } from '../../../../services/database/supabase-client';
+
+interface SubmissionApiResponse {
+  correct: boolean;
+  explanation: string;
+  nextTopicSuggestion: string;
+  reputation: {
+    score: number;
+    status: string;
+  };
+}
 
 interface ErrorResponse {
   error: string;
@@ -48,11 +50,11 @@ async function getUserIdFromAuth(req: NextApiRequest): Promise<string | null> {
 }
 
 /**
- * Handler for POST /api/admin/reviews
+ * Handler for POST /api/questions/{id}/submit
  */
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ReviewDecisionResponse | ErrorResponse>
+  res: NextApiResponse<SubmissionApiResponse | ErrorResponse>
 ) {
   // Only accept POST requests
   if (req.method !== 'POST') {
@@ -60,7 +62,7 @@ export default async function handler(
   }
 
   try {
-    const { questionId } = req.query;
+    const { id: questionId } = req.query;
 
     if (!questionId || typeof questionId !== 'string') {
       return res.status(400).json({ error: 'Invalid question ID' });
@@ -72,19 +74,8 @@ export default async function handler(
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Verify admin access
-    const isAdmin = await verifyAdminAccess(userId);
-    if (!isAdmin) {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
-
     // Validate request body
-    const reviewInput = {
-      question_id: questionId,
-      ...req.body,
-    };
-
-    const parsed = reviewDecisionSchema.safeParse(reviewInput);
+    const parsed = submissionSchema.safeParse(req.body);
     if (!parsed.success) {
       return res.status(400).json({
         error: 'Invalid request body',
@@ -92,19 +83,23 @@ export default async function handler(
       });
     }
 
-    // Process review decision
-    const result = await processReviewDecision(userId, parsed.data);
+    // Record start time for response time calculation
+    const startTimeMs = Date.now();
+
+    // Process submission
+    const result = await processSubmission(userId, questionId, parsed.data, startTimeMs);
 
     if (!result) {
       return res.status(400).json({
-        error: 'Failed to process review decision',
+        error: 'Failed to process submission',
+        details: 'Check that question exists and you haven\'t already submitted an answer',
       });
     }
 
     // Return success response
     return res.status(200).json(result);
   } catch (error) {
-    console.error('Review decision endpoint error:', error);
+    console.error('Submission endpoint error:', error);
     return res.status(500).json({
       error: 'Internal server error',
     });

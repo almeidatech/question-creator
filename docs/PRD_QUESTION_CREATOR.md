@@ -523,26 +523,42 @@ MVP is successful when:
 #### US-6.2: Build RAG System from Question Bank
 
 **As a** an AI system
-**I want to** use the 63k+ real exam questions as a knowledge base for generating new questions
-**So that** AI-generated questions match real exam patterns
+**I want to** use the real exam question bank as a knowledge base for generating new questions
+**So that** AI-generated questions match real exam patterns without contaminating the corpus
 
 **Acceptance Criteria:**
 
-- [ ] All 63k+ questions ingested into vector database (embeddings computed)
-- [ ] Semantic search implemented: retrieve relevant questions by topic + difficulty
-- [ ] RAG retrieval working: given a new question prompt, system retrieves 5-10 similar questions for reference
-- [ ] LLM uses retrieved questions to inform generation (ground in real patterns)
-- [ ] RAG latency < 2 seconds (retrieval + ranking)
+**MVP (Week 3 - Full-Text Search):**
+- [ ] RAG retrieval using PostgreSQL full-text search (FTS)
+- [ ] Semantic search retrieves 5-10 similar real exam questions (by keyword + difficulty)
+- [ ] Retrieval latency < 100ms (local PostgreSQL)
+- [ ] Filtered by topic + difficulty + exam_board
+- [ ] LLM uses retrieved real questions to inform generation (ground in real patterns)
+- [ ] Real exam questions are SOLE source for RAG (no AI-generated questions in corpus)
 
-**Technical Details:**
+**Phase 2 (Week 4 - Semantic Search with pgvector):**
+- [ ] All 13,917 Constitutional Law questions vectorized (embeddings computed)
+- [ ] pgvector embeddings stored in Supabase PostgreSQL (no separate vector DB)
+- [ ] Hybrid search: FTS + semantic similarity scoring
+- [ ] RAG retrieval latency < 2 seconds (FTS + vector ranking)
+- [ ] Increased RAG context: 10 similar questions retrieved
+- [ ] Source filtering: ONLY real_exam type questions used for RAG
 
-- Use embedding model (OpenAI, Cohere, or similar) to vectorize all questions
-- Store embeddings in vector database (Pinecone, Weaviate, etc.)
-- Implement semantic search with filtering (difficulty, topic, exam_board)
-- Build RAG pipeline: embed user request → retrieve similar questions → prompt LLM with context
-- Monitor retrieval quality: ensure relevant questions returned
+**Technical Details - MVP:**
+- Use PostgreSQL `tsvector` (full-text search) on question text + topics
+- Query: `SELECT * FROM questions WHERE source_type='real_exam' AND to_tsvector('portuguese', text) @@ plainto_tsquery(...)`
+- Filter by: difficulty, topic_id, exam_board
+- Redis caching: Cache generated lists for 24h to reduce repeated RAG calls
+- **CRITICAL:** Implement source_type filter to prevent AI-generated questions from influencing new generations
 
-**Priority:** P1 (Week 2, post-MVP, enables better AI generation)
+**Technical Details - Phase 2:**
+- Use OpenAI/Cohere embedding model to create vectors for all real exam questions
+- Store embeddings in pgvector extension (PostgreSQL native, no extra infrastructure)
+- Hybrid scoring: Combine BM25 (FTS relevance) + cosine similarity (vector relevance)
+- Update RAG query to retrieve top-5 (FTS) + top-5 (vector) = top-10 merged results
+- Monitor embedding quality: Ensure retrieved questions semantically similar to request
+
+**Priority:** P1 Week 2 (MVP: FTS) → Week 4 Phase 2 (pgvector upgrade)
 
 ---
 
@@ -767,7 +783,38 @@ MVP is successful when:
 
 ---
 
-#### Feature 6: Feedback & Problem Reporting
+#### Feature 6A: RAG System (Full-Text Search MVP → pgvector Phase 2)
+
+**Description - MVP (Week 3):** PostgreSQL full-text search retrieves real exam questions as context for AI generation, preventing corpus contamination
+
+**MVP Processing:**
+1. Student requests: "Generate 5 medium difficulty Constitutional Law questions"
+2. System checks database: `SELECT * FROM questions WHERE source_type='real_exam' AND difficulty='medium'`
+3. Full-text search ranking filters by relevance
+4. Retrieve top-5-10 real questions matching criteria
+5. Claude API receives: [prompt + FTS-retrieved real questions as reference]
+6. Claude generates new questions **grounded in real exam patterns**
+7. Generated question marked: `source_type='ai_generated'` + reputation=0/10
+8. **CRITICAL:** Generated question is **NOT** added back to RAG corpus
+
+**MVP Success Criteria:**
+- Real exam questions 100% of RAG corpus (no AI-generated questions in retrieval)
+- FTS latency < 100ms
+- Generated questions diversity improved (patterns matched from real exams)
+- Zero corpus contamination (fiction doesn't influence future fiction)
+
+---
+
+**Phase 2 Upgrade (Week 4):** pgvector hybrid search (semantic + full-text)
+- Add OpenAI embeddings for all 13.9k Constitutional Law questions
+- Hybrid retrieval: FTS results + vector similarity top results
+- Increased context: 10 questions (instead of 5)
+- Latency: < 2 seconds (acceptable for 2-3s total generation time)
+- Same corpus isolation: source_type filtering prevents AI contamination
+
+---
+
+#### Feature 6B: Feedback & Problem Reporting
 
 **Description:** Students can report issues with questions; system routes to expert review
 
@@ -787,6 +834,11 @@ MVP is successful when:
 - Track feedback patterns: Flag users submitting multiple problems for same question
 - V1 keeps feedback free-text, visible to admins but not used algorithmically until validated
 - Future versions: Add reputation to feedback submitter (incentivize quality reporting)
+
+**Critical for RAG System:**
+- Feedback on AI-generated questions NEVER influences RAG corpus retrieval
+- All reputation changes logged with source attribution
+- Monthly audit: Verify no contamination of source_type='real_exam' data
 
 ---
 
@@ -939,54 +991,99 @@ CREATE TABLE question_reviews (
 
 ## 6. SUCCESS METRICS (KPIs)
 
-### 6.1 User Adoption Metrics
+### 6.1 Tier 1: Quality Jurídica (CRITICAL - MVP Gating)
 
-| Metric | MVP Target | Measurement | Timeline |
+| Metric | MVP Target | Phase 2 Target | Measurement | Cadence |
+| --- | --- | --- | --- | --- |
+| **Expert Approval Rate** | >80% first review | >85% first review | % questions approved in single validation | Semanal |
+| **Error Rate** | <5% errors found | <3% errors | Erros encontrados / total geradas | Semanal |
+| **Reputation Score (Generated)** | Média 7+/10 | Média 8+/10 | Sum(reputation) / count | Contínuo |
+| **Zero Critical Legal Errors** | 100% compliance | 100% compliance | Factually incorrect content in prod | Pre-launch + ongoing |
+| **Corpus Contamination Check** | Zero contamination | Zero contamination | AI-generated questions in RAG | Mensal audit |
+
+**Threshold Alerts:**
+- Expert approval < 75% → Escalate to Constitutional Law SME
+- Error rate > 10% → Pause generation, investigate
+- Reputation < 6.5/10 → Quality review session
+
+---
+
+### 6.2 Tier 2: User Experience (IMPORTANT)
+
+| Metric | MVP Target (FTS) | Phase 2 Target (pgvector) | Measurement | Cadence |
+| --- | --- | --- | --- | --- |
+| **Generation Latency (P95)** | <2-3 seconds | <2 seconds | API response time end-to-end | Contínuo |
+| **FTS Query Latency (P95)** | <100ms | <100ms (kept) | PostgreSQL FTS query time | Contínuo |
+| **Cache Hit Rate** | >70% | >75% | Hits / total_requests (Redis 24h TTL) | Diário |
+| **Search Latency (P95)** | <2 seconds (N/A MVP) | <2 seconds | Semantic search (pgvector Phase 2) | Semanal (Phase 2) |
+| **Dashboard Load (P95)** | <3 seconds | <2.5 seconds | Analytics view response | Contínuo |
+
+**Threshold Alerts:**
+- Generation latency > 3s → Cache review or Ray instrumentation
+- Cache hit < 60% → Analysis for optimization
+- Dashboard > 3.5s → Database query optimization
+
+---
+
+### 6.3 Tier 3: Business & Adoption (IMPORTANT)
+
+| Metric | MVP Target (Week 4) | Phase 2 Target (Week 8) | Measurement | Cadence |
+| --- | --- | --- | --- | --- |
+| **Active Users** | 50+ | 100+ | Users logging in at least once/week | Semanal |
+| **1-Week Retention** | 70%+ | 75%+ | % of sign-ups who return within 7 days | Semanal |
+| **DAU (Daily Active Users)** | 20+ | 40+ | Users accessing system daily | Diário |
+| **Cost per Active User** | <$0.10/user/month | <$0.08/user/month | Infrastructure + API costs / active users | Mensal |
+| **Generation Frequency** | 2-5 ger/prof/week | 3-7 ger/prof/week | Average generations per user per week | Semanal |
+| **Real Exam Coverage** | 80%+ in lists | 85%+ in lists | % questions that are real exam (not AI) | Diário |
+
+**Threshold Alerts:**
+- Active users < 30 by week 4 → Escalate institutional partnership plan
+- 1-week retention < 50% → Product analysis needed
+- Cost > $0.15/user → Review LLM/vector DB pricing
+
+---
+
+### 6.4 Tier 4: Technical Health (SUPPORT)
+
+| Metric | MVP Target | Phase 2 Target | Measurement | Cadence |
+| --- | --- | --- | --- | --- |
+| **System Uptime** | 99%+ | 99.5%+ | Availability (30-day rolling) | Contínuo |
+| **API Error Rate** | <0.5% | <0.3% | Errors / total requests | Contínuo |
+| **Database Performance (P95)** | <100ms FTS | <150ms hybrid | Query latency on all DB queries | Contínuo |
+| **Critical Bugs** | Zero | Zero | Showstoppers in prod | Pre-launch + monitored |
+| **Data Loss Incidents** | Zero | Zero | Unrecoverable data loss events | Ongoing |
+| **Vector Quality (Phase 2)** | N/A | >0.8 similarity | Top-10 embeddings relevance score | Semanal |
+
+**Threshold Alerts:**
+- Uptime < 98.5% → Incident response
+- Error rate > 2% → Automated rollback check
+- Query latency > 300ms → Index review
+
+---
+
+### 6.5 User Satisfaction Metrics
+
+| Metric | MVP Target | Measurement | Cadence |
 | --- | --- | --- | --- |
-| **Active Users** | 50+ | Users logging in at least once/week | 30 days |
-| **1-Week Retention** | 70%+ | % of sign-ups who return within 7 days | 30 days |
-| **DAU (Daily Active Users)** | 20+ | Users accessing system daily | 30 days |
-| **Avg Session Duration** | 15+ minutes | Time spent per session | Ongoing |
-| **Questions Attempted** | 500+ | Total across all users | 30 days |
-| **Avg Questions/User** | 10+ | Total questions ÷ active users | 30 days |
+| **Overall Satisfaction** | > 7/10 | Post-session survey | Semanal |
+| **Content Quality Rating** | 80%+ good/excellent | "How would you rate question quality?" | Semanal |
+| **AI Accuracy Confidence** | 85%+ trust AI | "Do you trust AI-generated questions?" | Mensal |
+| **NPS (Recommendation)** | 40+ | "Would you recommend to peers?" | Mensal |
+| **Ease of Use** | 75%+ easy/very easy | Interface usability feedback | Semanal |
+| **Professor Satisfaction** | 80%+ endorsement | Educator interviews (2-3 deep dives) | Mensal |
 
-### 6.2 Content Quality Metrics
+---
 
-| Metric | MVP Target | Measurement |
-| --- | --- | --- |
-| **Real Exam Question Coverage** | 80%+ of lists | % of generated lists using real exam questions vs AI fallback |
-| **Zero Critical Errors** | 100% | No factually incorrect Constitutional Law content in production |
-| **Feedback Response Time** | 7 days | Expert review of flagged questions within 7 days |
-| **AI-Generated Questions** | 20+ | Number of new questions created by system |
-| **Feedback Submissions** | 10+ | Problems reported by users; indicates engagement |
+### 6.6 Real Exam Question Coverage & RAG Efficiency
 
-### 6.3 System Performance Metrics
+| Metric | MVP Target | Phase 2 Target | Measurement |
+| --- | --- | --- | --- |
+| **Real Exam in Generation** | 80%+ lists fulfilled | 85%+ lists fulfilled | % lists where ≥80% are real questions |
+| **AI Fallback Usage** | <20% of lists | <15% of lists | % lists needing AI supplement |
+| **RAG Retrieval Quality** | >5 relevant per 10 | >8 relevant per 10 | Expert assessment: relevant questions retrieved |
+| **Corpus Isolation** | 100% source_type filtering | 100% source_type filtering | Zero AI-generated questions in RAG corpus |
 
-| Metric | MVP Target |
-| --- | --- |
-| **Uptime** | 99%+ |
-| **Generation Latency (P95)** | < 30 seconds |
-| **Search Latency (P95)** | < 2 seconds |
-| **Zero Critical Bugs** | All bugs reproducible & fixable pre-launch |
-
-### 6.4 User Satisfaction Metrics
-
-| Metric | MVP Target | Measurement |
-| --- | --- | --- |
-| **Overall Satisfaction** | > 7/10 | Post-session survey |
-| **Content Quality Rating** | 80%+ good/excellent | "How would you rate question quality?" |
-| **AI Accuracy Confidence** | 85%+ confirm accurate | "Do you trust AI-generated questions?" |
-| **NPS (Recommendation)** | 40+ | "Would you recommend to peers?" |
-| **Ease of Use** | 75%+ easy/very easy | Interface usability feedback |
-
-### 6.5 Business Metrics
-
-| Metric | MVP Target |
-| --- | --- |
-| **Cost per Active User** | Below threshold (TBD post-MVP) |
-| **Infrastructure Scaling** | No major bottlenecks identified |
-| **Institutional Interest** | 2-3 prep course inquiries |
-| **Media Coverage** | Positive press in 1-2 education media outlets |
+---
 
 ### 6.6 Roadmap Decision Gates
 
@@ -1053,34 +1150,73 @@ CREATE TABLE question_reviews (
 
 **Deliverable:** Dashboard showing student progress + weak areas
 
-#### Sprint 7-8 (Weeks 7-8): AI Generation & Polish
+#### Sprint 7-8 (Weeks 7-8): AI Generation (FTS-Based RAG) & Polish
 
-- [ ] LLM integration for question generation (fallback when no real questions)
-- [ ] RAG system setup (semantic indexing of 63k questions)
-- [ ] AI question prompt engineering (Constitutional Law focus)
-- [ ] Expert review queue for AI-generated questions
-- [ ] Testing, bug fixes, performance optimization
+- [ ] LLM integration for question generation (Claude 3.5 Sonnet)
+- [ ] **RAG system setup PHASE 1:** PostgreSQL full-text search (FTS)
+  - FTS query for similar real questions by topic + difficulty
+  - Redis cache (24h TTL) for generated lists
+  - Source filtering: ONLY real_exam questions in RAG corpus
+- [ ] AI question prompt engineering (Constitutional Law patterns grounded in real exams)
+- [ ] **CRITICAL:** Dual-corpus architecture implementation
+  - Table: `question_sources` with `source_type` enum (real_exam vs ai_generated)
+  - Filtering: `WHERE source_type='real_exam'` in RAG queries
+  - Policy: AI-generated questions NEVER return to RAG corpus
+- [ ] Expert review queue for AI-generated questions (pre-user exposure)
+- [ ] Testing: RAG retrieval quality, corpus isolation, prompt engineering
 - [ ] User acceptance testing with 20-50 beta users
+- [ ] **DEFER to Phase 2:** pgvector semantic search, embeddings
 
-**Deliverable:** MVP v1.0 launch-ready; 50+ beta users testing
+**Deliverable:** MVP v1.0 launch-ready; FTS-based RAG working; 50+ beta users testing
 
 **Exit Criteria:**
 
 - ✅ 13,917 Constitutional Law questions fully indexed
+- ✅ RAG using PostgreSQL FTS (not pgvector yet)
+- ✅ Dual-corpus strategy implemented + tested
+- ✅ Real exam questions ONLY in RAG corpus
 - ✅ 50+ active users in beta
 - ✅ 500+ total questions attempted
 - ✅ 99%+ system uptime
 - ✅ Zero critical bugs
 - ✅ > 7/10 user satisfaction
 - ✅ 80%+ users trust question quality
+- ✅ Expert approval rate >80% for AI-generated questions
 
 ---
 
-### 7.2 Phase 2 (v1.1-v2.0) - Months 2-4
+### 7.2 Phase 2 (v1.1) - Week 4 (Immediate Post-MVP)
 
-**Focus:** Quick wins from user feedback + core feature expansion
+**Focus:** Upgrade RAG to semantic search + quick wins from early user feedback
 
-#### Immediate Post-MVP (Weeks 9-12): Quick Wins
+#### Week 4: RAG Enhancement with pgvector (PRIORITY 1)
+
+1. **pgvector Integration** (3-4 days)
+   - Create pgvector extension in Supabase PostgreSQL
+   - Compute OpenAI embeddings for all 13,917 Constitutional Law questions
+   - Batch job: ~2-3 hours for full vectorization
+   - Store embeddings in `question_embeddings` table
+   - Create vector index (HNSW for fast similarity search)
+
+2. **Hybrid RAG System** (2-3 days)
+   - Upgrade RAG queries to combine FTS + vector similarity
+   - Scoring: Merge top-5 (BM25 from FTS) + top-5 (cosine similarity from pgvector)
+   - Increase context: 5 → 10 similar questions to Claude
+   - Update Redis cache keys to reflect hybrid queries
+   - **CRITICAL:** Maintain source_type='real_exam' filtering
+
+3. **Testing & Validation** (1-2 days)
+   - Compare FTS vs. hybrid search quality (qualitative expert review)
+   - Measure latency: FTS (<100ms) + vector similarity (<150ms) = total <300ms
+   - Verify no regression in generation quality
+   - Validate corpus isolation still working
+
+**Deliverable:** v1.1 with semantic search (pgvector) live
+**Success Criteria:** Latency <2s total, Quality ≥ MVP baseline, Zero corpus contamination
+
+---
+
+#### Weeks 5-12: Community & Quick Wins (PRIORITY 2-3)
 
 1. **Community Discussion System** (2 weeks)
    - Comments/thread on questions (high user request)
@@ -1099,7 +1235,7 @@ CREATE TABLE question_reviews (
    - Certificate of contribution
    - **Impact:** Scales human validation as platform grows
 
-**Deliverable:** v1.1 release with community features
+**Deliverable:** v1.1 release (Week 4 with pgvector + Weeks 5-12 with community features)
 
 #### Secondary V2 (Weeks 13-24): Core Expansion
 
@@ -1197,17 +1333,25 @@ CREATE TABLE question_reviews (
 
 ### 8.1 Technology Stack (Recommended)
 
-| Layer | Technology | Rationale |
-| --- | --- | --- |
-| **Frontend** | React + TypeScript | Type safety, component reusability |
-| **Backend** | Node.js/Python FastAPI | Async support for LLM calls |
-| **Database** | PostgreSQL | Relational integrity, JSONB support |
-| **Vector DB** | Pinecone/Weaviate | RAG system, semantic search |
-| **Cache** | Redis | Question reputation scores, session caching |
-| **LLM API** | OpenAI GPT-4 or Claude | Production-grade question generation |
-| **Embeddings** | OpenAI/Cohere API | RAG semantic indexing |
-| **Cloud** | AWS/GCP/Azure | Scalable infrastructure |
-| **Monitoring** | DataDog/New Relic | Performance + error tracking |
+| Layer | MVP (Week 3) | Phase 2 (Week 4+) | Rationale |
+| --- | --- | --- | --- |
+| **Frontend** | React + TypeScript | React + TypeScript | Type safety, component reusability |
+| **Backend** | Node.js/Python FastAPI | Node.js/Python FastAPI | Async support for LLM calls |
+| **Database** | PostgreSQL | PostgreSQL + pgvector | Relational integrity, JSONB support |
+| **Full-Text Search** | PostgreSQL tsvector | PostgreSQL tsvector (kept) | FTS for MVP RAG retrieval |
+| **Vector DB** | NONE (defer) | pgvector (native PostgreSQL) | **Phase 2 only:** Semantic search via native pgvector, not external (Pinecone/Weaviate deferred) |
+| **Cache** | Redis | Redis | Question lists (24h TTL), generated content caching |
+| **LLM API** | Claude 3.5 Sonnet | Claude 3.5 Sonnet | Production-grade question generation with RAG |
+| **Embeddings** | NONE (defer) | OpenAI API | **Phase 2 only:** Vector embeddings for semantic search |
+| **Cloud** | AWS/GCP/Azure | AWS/GCP/Azure | Scalable infrastructure (Supabase managed PostgreSQL) |
+| **Monitoring** | DataDog/New Relic | DataDog/New Relic | Performance + error tracking |
+
+**Key Decision: pgvector on Supabase (not separate Pinecone/Weaviate)**
+- Rationale: Reduces operational complexity for MVP; vectors in same DB as questions
+- No additional infrastructure setup required
+- Supabase PostgreSQL pricing includes pgvector (~$50-100/month at scale)
+- Deferral: Consider Pinecone only if scale exceeds 1M+ questions OR latency > 2s becomes issue
+- Timeline: pgvector integration begins Week 4 (Phase 2), not MVP
 
 ### 8.2 External Dependencies
 
@@ -1232,15 +1376,116 @@ CREATE TABLE question_reviews (
 
 **Total:** ~2.8 FTE for 8-week MVP
 
-#### Infrastructure Costs (Monthly Estimate - MVP)
+#### Infrastructure Costs (Monthly Estimate)
 
+**MVP (Week 3 - Full-Text Search Only):**
 - Cloud compute (AWS EC2/App Engine): $500-1,000
 - Database (PostgreSQL managed): $200-500
-- Vector DB (Pinecone starter): $100-300
-- LLM API calls (10k questions/month at ~$0.01/question): $100-200
+- **Vector DB:** NONE (FTS only)
+- LLM API calls (10k questions/month at ~$0.022/batch of 5): $44-88
+- Redis cache: $20-50
 - Monitoring/logging: $100-200
 - Domain, SSL, misc: $50
-- **Total:** $1,050-2,250/month
+- **MVP Total: $914-1,888/month**
+
+**Phase 2 (Week 4+ - with pgvector):**
+- Cloud compute (AWS EC2/App Engine): $500-1,000
+- Database (PostgreSQL + pgvector, Supabase): $300-600
+  - Includes pgvector extension + vector indexes
+  - Scaling: ~$50-100/month increment for vector storage/queries
+- **Vector DB:** Native pgvector (PostgreSQL) - NO external Pinecone/Weaviate
+- LLM API calls (same rate): $44-88
+- OpenAI Embeddings (creating vectors for 13.9k questions + ongoing): $20-40/month
+- Redis cache: $20-50
+- Monitoring/logging: $100-200
+- Domain, SSL, misc: $50
+- **Phase 2 Total: $1,034-2,028/month**
+
+**Cost Comparison:**
+- MVP: ~$1,450/month average
+- Phase 2 with pgvector: ~$1,531/month average (only +$81/month for semantic search)
+- Deferral savings: Avoid $100-300/month Pinecone/Weaviate licensing until scale justifies
+
+**Scaling Economics (Projection):**
+- 1,000 users: ~$1.5/user/month (MVP) → ~$1.53/user/month (Phase 2)
+- 10,000 users: ~$0.15/user/month (MVP) → ~$0.15/user/month (Phase 2)
+- Break-even on pgvector investment: Immediate (marginal cost)
+
+### 8.3B RAG & Vector Strategy: Dual-Corpus Architecture
+
+**CRITICAL POLICY: AI-Generated Questions NEVER Contaminate RAG Corpus**
+
+**Problem Statement:**
+If AI-generated questions are included in the RAG corpus for future generations, we risk:
+- Quality degradation through iterative "fiction influencing fiction"
+- Error amplification: A subtle legal error gets copied by 10+ future generations
+- Loss of ground truth: Can no longer distinguish real exam patterns from learned artifacts
+
+**Solution: Source-Type Filtering**
+
+```sql
+-- Table Structure for Corpus Isolation:
+
+CREATE TABLE question_sources (
+  id UUID PRIMARY KEY,
+  question_id UUID UNIQUE REFERENCES questions(question_id),
+  source_type ENUM('real_exam', 'ai_generated', 'expert_approved'),
+  rag_eligible BOOLEAN DEFAULT true,  -- Can be used in RAG?
+  created_at TIMESTAMP,
+  approved_at TIMESTAMP NULL,
+  approved_by UUID NULL
+);
+
+-- RAG Query (IMMUTABLE - ONLY Real Exams):
+SELECT q.*
+FROM questions q
+JOIN question_sources qs ON q.id = qs.question_id
+WHERE qs.source_type = 'real_exam'     -- ← ONLY REAL EXAMS
+  AND qs.rag_eligible = TRUE            -- ← Safety flag
+  AND q.difficulty = $1                 -- ← Filter by parameters
+  AND q.topic_id = $2
+LIMIT 10;
+
+-- Questions Approved by Experts (SECONDARY USE):
+SELECT q.*
+FROM questions q
+JOIN question_sources qs ON q.id = qs.question_id
+WHERE qs.source_type = 'expert_approved'  -- ← SEPARATE
+  AND qs.rag_eligible = FALSE              -- ← NOT IN RAG
+  AND qs.approved_at IS NOT NULL           -- ← Validated
+ORDER BY qs.approved_at DESC;
+```
+
+**Implementation Timeline:**
+
+**MVP (Week 3):**
+- [ ] Create `question_sources` table with source_type enum
+- [ ] Migrate all 13,917 real exam questions: `source_type = 'real_exam'`
+- [ ] Implement RAG filtering: `WHERE source_type = 'real_exam'` ALWAYS
+- [ ] All new AI-generated questions: `source_type = 'ai_generated'`, `rag_eligible = false`
+- [ ] Test: Verify no AI-generated questions appear in RAG retrieval
+
+**Phase 2 (Week 4+):**
+- [ ] When questions approved by experts: `source_type = 'expert_approved'`, `rag_eligible = false`
+- [ ] Monthly audit: Verify zero contamination in source_type='real_exam' queries
+- [ ] Dashboard metric: Track % of AI-generated questions (monitor contamination risk)
+
+**Monitoring & Audit:**
+
+1. **Daily:** Log all RAG queries with results; verify no source_type='ai_generated' in top-10
+2. **Weekly:** Report on distribution of question sources by generation batch
+3. **Monthly:** Expert audit—sample 50 random generated questions, verify quality not degrading
+
+**Failure Mode (Detection & Response):**
+
+If contamination detected (AI-generated in RAG corpus):
+1. **Alert:** Immediately flag to @architect + @dev
+2. **Investigation:** Trace which queries returned contaminated results
+3. **Rollback:** Revert to last clean database snapshot
+4. **Fix:** Review filtering logic; add stricter type checking
+5. **Restart:** Resume generation with validated corpus
+
+---
 
 ### 8.4 Key Technical Risks
 
@@ -1474,9 +1719,43 @@ If CSV import fails or corrupts data:
 | --- | --- | --- | --- |
 | 0.9 | Jan 29, 2026 | PM | Draft PRD from PROJECT_BRIEF |
 | 1.0 | Jan 31, 2026 | PM | Final PRD ready for development |
+| 1.1 | Feb 1, 2026 | PM (Morgan) + Atlas (Analyst) | **VALIDATED:** RAG Strategy update - pgvector Phase 2, FTS MVP, dual-corpus isolation, comprehensive KPIs |
 
-**Status:** ✅ Ready for Development Planning
-**Next Step:** Engineering architecture review + sprint planning kickoff
+**Major Changes in v1.1:**
+
+✅ **RAG Strategy Finalized:**
+- MVP (Week 3): PostgreSQL full-text search (FTS) for RAG retrieval
+- Phase 2 (Week 4): pgvector hybrid search (semantic + FTS)
+- Deferral: Pinecone/Weaviate only if scale >1M questions
+- Cost: +$81/month for pgvector Phase 2 (vs separate vector DB)
+
+✅ **Dual-Corpus Architecture:**
+- `question_sources` table with source_type filtering
+- RAG corpus: ONLY real_exam questions (never AI-generated)
+- AI-generated questions: Isolated in separate stream, never influence future generations
+- Monthly audit: Verify zero corpus contamination
+
+✅ **Comprehensive KPIs (6 Tiers):**
+- Tier 1 (Quality): Expert approval >80%, error rate <5%, reputation 7+/10
+- Tier 2 (UX): Generation latency <2-3s, cache hit >70%
+- Tier 3 (Business): 50+ active users, 70%+ retention, <$0.10/user/month cost
+- Tier 4 (Technical): 99%+ uptime, error rate <0.5%, vector quality >0.8
+- Tier 5 (Satisfaction): >7/10 overall satisfaction, 85%+ AI trust
+- Tier 6 (RAG Efficiency): 80%+ real exam coverage, zero contamination
+
+✅ **Timeline Clarity:**
+- Sprint 7-8: Implement FTS-based RAG + dual-corpus (MVP)
+- Phase 2 Week 4: Deploy pgvector hybrid search
+- Phase 2 Weeks 5-12: Community features + quick wins
+
+✅ **Risk Mitigation:**
+- Expert review gate: 100% of AI questions before user exposure
+- Corpus contamination: Source-type filtering + monthly audits
+- Quality regression: KPI monitoring with automated alerts
+
+**Status:** ✅ APPROVED by Product Management & Business Analysis
+**Validation:** @pm (Morgan) & @analyst (Atlas)
+**Next Step:** Architecture review by @architect + sprint planning kickoff
 
 ---
 

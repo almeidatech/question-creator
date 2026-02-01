@@ -16,6 +16,28 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ============================================================================
+-- AUDIT_LOG TABLE (Compliance & Debugging) [NEW v2.1]
+-- ============================================================================
+-- Centralized audit trail for critical operations (RAG corpus changes, etc.)
+
+CREATE TABLE IF NOT EXISTS audit_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  table_name VARCHAR(255) NOT NULL,
+  record_id TEXT,
+  old_value TEXT,
+  new_value TEXT,
+  changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  changed_by VARCHAR(255),
+  change_reason TEXT,
+  metadata JSONB
+);
+
+-- Audit log indexes for quick lookups
+CREATE INDEX IF NOT EXISTS idx_audit_log_table_name ON audit_log(table_name);
+CREATE INDEX IF NOT EXISTS idx_audit_log_changed_at ON audit_log(changed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_log_record_id ON audit_log(record_id) WHERE record_id IS NOT NULL;
+
+-- ============================================================================
 -- TABLE 1: USERS (Authentication & Authorization)
 -- ============================================================================
 
@@ -148,6 +170,29 @@ CREATE TABLE IF NOT EXISTS questions (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   created_by UUID REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- ============================================================================
+-- TABLE 6A: QUESTION_SOURCES (Dual-Corpus RAG Control) [NEW v2.1]
+-- ============================================================================
+-- CRITICAL FOR RAG: Enforces source isolation for AI-generated vs real exam questions
+-- RAG queries MUST filter: WHERE source_type='real_exam' AND rag_eligible=true
+
+CREATE TABLE IF NOT EXISTS question_sources (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  question_id UUID UNIQUE NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+
+  -- Source Classification
+  source_type VARCHAR(20) NOT NULL CHECK (source_type IN ('real_exam', 'ai_generated', 'expert_approved')),
+  rag_eligible BOOLEAN NOT NULL DEFAULT false,
+
+  -- Approval Workflow
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  approved_at TIMESTAMPTZ,
+  approved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+
+  -- Audit & Compliance
+  metadata JSONB -- reason for flag, reviewer comments, etc.
 );
 
 -- ============================================================================

@@ -73,6 +73,26 @@ CREATE INDEX IF NOT EXISTS idx_questions_search_vector
   ON questions USING GIN(search_vector);
 
 -- ============================================================================
+-- QUESTION_SOURCES INDEXES (Dual-Corpus RAG - CRITICAL)
+-- ============================================================================
+-- CRITICAL FOR RAG PERFORMANCE: These indexes enforce source type filtering
+
+-- Composite index for RAG queries: MUST include source_type AND rag_eligible
+-- Target: <100ms for 13.9k questions with WHERE clause filtering
+CREATE INDEX IF NOT EXISTS idx_question_sources_rag_filtering
+  ON question_sources(source_type, rag_eligible)
+  WHERE source_type = 'real_exam';
+
+-- Quick question_id lookups
+CREATE INDEX IF NOT EXISTS idx_question_sources_question_id
+  ON question_sources(question_id);
+
+-- Approval workflow tracking
+CREATE INDEX IF NOT EXISTS idx_question_sources_approval_status
+  ON question_sources(approved_at, approved_by)
+  WHERE approved_at IS NULL;
+
+-- ============================================================================
 -- QUESTION_TOPICS INDEXES (N:M Relationship)
 -- ============================================================================
 

@@ -133,6 +133,8 @@ Estabelecer a base do Question Creator MVP com geração de questões via IA, si
 
 **Description:** Implementar geração de questões via Gemini API com RAG (retrieval-augmented generation), caching Redis 24h, fallback para questões reais, busca full-text em português.
 
+**⚠️ LLM DECISION:** See [ADR-001-GEMINI-RAG-LLM-CHOICE.md](./ADR-001-GEMINI-RAG-LLM-CHOICE.md) - Gemini 1.5 Pro selected (not Claude) for cost efficiency.
+
 **Duration:** 1 semana (Sprint 1.1 + 1.2) | **Effort:** 28h
 
 **Predicted Agents:**

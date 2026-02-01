@@ -237,9 +237,9 @@ Timeline: 2 weeks MVP (FTS) + 3-4 days Phase 2 (pgvector)
 
 ---
 
-## US-1B.3: Claude 3.5 Sonnet Integration
+## US-1B.3: Gemini API Question Generation Integration
 
-**🎯 Story Intent:** Core value delivery - generate novel questions grounded in real exam patterns. This is where RAG + LLM combine. Quality gate: Expert review 100% before any user sees generated questions.
+**🎯 Story Intent:** Core value delivery - generate novel questions grounded in real exam patterns. This is where RAG + LLM combine. Quality gate: Expert review 100% before any user sees generated questions. **LLM Choice:** Gemini 1.5 Pro (see [ADR-001](../ADR-001-GEMINI-RAG-LLM-CHOICE.md))
 
 **User Story:**
 **As a** student
@@ -264,12 +264,13 @@ Timeline: 2 weeks MVP (FTS) + 3-4 days Phase 2 (pgvector)
 
 - [ ] **RAG Context Retrieval:**
   - [ ] Calls `retrieveRagContext(topic, difficulty, count)` from US-1B.2
-  - [ ] Receives 10-20 real exam questions as context
-  - [ ] **TEST:** Verify all returned questions have `source_type='real_exam'`
+  - [ ] Receives 10-20 real exam questions as context (VERIFIED: `source_type='real_exam' AND rag_eligible=true`)
+  - [ ] **TEST:** Verify all returned questions have `source_type='real_exam'` AND `rag_eligible=true`
 
-- [ ] **Claude API Integration:**
-  - [ ] Claude 3.5 Sonnet API configured (via Anthropic SDK)
-  - [ ] API key loaded from `.env.local` (CLAUDE_API_KEY)
+- [ ] **Gemini API Integration:**
+  - [ ] Gemini 1.5 Pro API configured (via Google API SDK)
+  - [ ] API key loaded from `.env.local` (GEMINI_API_KEY)
+  - [ ] **Rationale:** Cost efficiency ($0.005/1K tokens batch vs Claude $0.003 real-time) + adequate legal domain knowledge
   - [ ] Prompt template (EXACT format - no variations):
     ```
     You are a Constitutional Law expert professor.
@@ -297,9 +298,10 @@ Timeline: 2 weeks MVP (FTS) + 3-4 days Phase 2 (pgvector)
       }
     ]
     ```
-  - [ ] Temperature: 0.7 (balance creativity + consistency)
-  - [ ] Max tokens: 4000
+  - [ ] Temperature: 0.5 (consistency over creativity - legal domain)
+  - [ ] Max tokens: 500
   - [ ] **TEST:** API call returns valid JSON response
+  - [ ] **TEST:** Timeout handling (30s max) - returns real questions as fallback if Gemini timeout
 
 - [ ] **Response Validation (Zod Schema):**
   - [ ] Parse Claude response as JSON
@@ -328,25 +330,27 @@ Timeline: 2 weeks MVP (FTS) + 3-4 days Phase 2 (pgvector)
       difficulty: input.difficulty,
       topic_id: input.topic_id,
       created_by: user_id,
-      reputation_score: 0
+      ai_model: 'gemini-1.5-pro',
+      generation_metadata: { rag_context_size: 10, temperature: 0.5 }
     }
     ```
-  - [ ] Insert into `question_sources`:
+  - [ ] **NEW:** Insert into `question_sources` (v2.2 schema):
     ```typescript
     {
       question_id: new_question.id,
-      source_type: 'ai_generated',  // CRITICAL
-      rag_eligible: false,           // CRITICAL
+      source_type: 'ai_generated',  // CRITICAL - prevents RAG contamination
+      rag_eligible: false,           // CRITICAL - AI-generated NEVER eligible for RAG
       created_at: NOW()
     }
     ```
+  - [ ] **Audit Trail:** Verify audit_log entry created (source_type='ai_generated' logged)
   - [ ] Store metadata:
     ```typescript
     {
       generation_id: uuid(),
       user_id: user_id,
-      model: 'claude-3.5-sonnet',
-      temperature: 0.7,
+      model: 'gemini-1.5-pro',
+      temperature: 0.5,
       rag_context_count: 10,
       tokens_input: api_response.usage.input_tokens,
       tokens_output: api_response.usage.output_tokens,
@@ -377,12 +381,14 @@ Timeline: 2 weeks MVP (FTS) + 3-4 days Phase 2 (pgvector)
   - [ ] Return 429 (Too Many Requests) with Retry-After header if exceeded
   - [ ] **TEST:** 11 requests from same user in 1 minute returns 429
 
-- [ ] **Cost Tracking & Budget:**
-  - [ ] Log cost per request: `(input_tokens * $0.003 + output_tokens * $0.015) / 1000`
-  - [ ] Expected cost per 5-question batch: ~$0.022
+- [ ] **Cost Tracking & Budget (Gemini):**
+  - [ ] Log cost per request: `(input_tokens * $0.005 + output_tokens * $0.015) / 1000` (Batch pricing)
+  - [ ] Real-time API pricing: `(input_tokens * $0.075 + output_tokens * $0.30) / 1000000` (fallback only)
+  - [ ] Expected cost per 5-question batch: ~$0.01 (batch) or ~$0.02 (real-time fallback)
   - [ ] Dashboard metric: cumulative API spend per day/month
-  - [ ] Alert if daily spend exceeds threshold
+  - [ ] Alert if daily spend exceeds threshold (default: $5)
   - [ ] **TEST:** Cost calculation correct for known input/output token counts
+  - [ ] **Rationale:** Gemini 1.5 Pro batch pricing significantly cheaper than Claude (see ADR-001)
 
 - [ ] **Error Handling:**
   - [ ] Exponential backoff on API errors:
@@ -632,14 +638,24 @@ Timeline: 2 weeks MVP (FTS) + 3-4 days Phase 2 (pgvector)
   - [ ] No race conditions possible
   - [ ] **TEST:** Load test passes 5+ times, zero failures
 
-- [ ] **Contamination Automated Check:**
+- [ ] **Contamination Automated Check (Audit Trail - NEW v2.2):**
   - [ ] Daily cron job: `SELECT COUNT(*) FROM question_sources WHERE source_type='ai_generated' AND rag_eligible=true`
   - [ ] Expected result: always 0
-  - [ ] If > 0: CRITICAL alert to Slack #alerts channel with:
+  - [ ] **NEW:** Check audit_log for unauthorized source_type changes:
+    ```sql
+    SELECT * FROM audit_log
+    WHERE table_name='question_sources'
+    AND changed_by NOT IN (SELECT email FROM users WHERE role='admin')
+    AND (new_value LIKE '%rag_eligible":true%' OR new_value LIKE '%"source_type":"real_exam"%')
+    ORDER BY changed_at DESC
+    ```
+  - [ ] If contamination found: CRITICAL alert to Slack #alerts channel with:
     - Count of contaminated records
     - List of question_ids
+    - Audit trail showing who made the change
     - Recommendation to rollback
   - [ ] **TEST:** Alert fires when contamination introduced (test then rollback)
+  - [ ] **TEST:** Audit log correctly records source_type changes
 
 - [ ] **Performance Benchmarks:**
   - [ ] FTS query latency: <100ms P95

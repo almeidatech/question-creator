@@ -6,6 +6,51 @@
 -- ============================================================================
 
 -- ============================================================================
+-- TRIGGER 0: Audit question_sources changes (RAG Compliance) [NEW v2.1]
+-- ============================================================================
+-- CRITICAL: Logs all source_type changes for compliance & debugging
+-- Prevents accidental contamination of RAG corpus
+
+CREATE OR REPLACE FUNCTION audit_question_sources_change()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Log source_type changes to audit trail
+  IF NEW.source_type != OLD.source_type OR NEW.rag_eligible != OLD.rag_eligible THEN
+    INSERT INTO audit_log (
+      table_name,
+      record_id,
+      old_value,
+      new_value,
+      changed_at,
+      changed_by,
+      change_reason
+    ) VALUES (
+      'question_sources',
+      NEW.id::text,
+      json_build_object(
+        'source_type', OLD.source_type,
+        'rag_eligible', OLD.rag_eligible
+      )::text,
+      json_build_object(
+        'source_type', NEW.source_type,
+        'rag_eligible', NEW.rag_eligible
+      )::text,
+      NOW(),
+      COALESCE(current_user, 'system'),
+      'RAG corpus isolation enforcement'
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trigger_audit_question_sources ON question_sources;
+CREATE TRIGGER trigger_audit_question_sources
+AFTER UPDATE ON question_sources
+FOR EACH ROW
+EXECUTE FUNCTION audit_question_sources_change();
+
+-- ============================================================================
 -- TRIGGER 1: Create reputation record when question is created
 -- ============================================================================
 

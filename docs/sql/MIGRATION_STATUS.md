@@ -2,7 +2,7 @@
 
 **Data:** 2026-02-01
 **Status:** ✅ **COMPLETO - PRONTO PARA PRODUCTION**
-**Versão do Schema:** 2.0 (Supabase Optimized)
+**Versão do Schema:** 2.2 (Supabase Optimized + RAG Support)
 
 ---
 

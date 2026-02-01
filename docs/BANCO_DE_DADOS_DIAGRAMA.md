@@ -17,7 +17,7 @@
 
 ## Visão Geral
 
-O banco de dados está organizado em **4 domínios** com **15 tabelas** principais:
+O banco de dados está organizado em **5 domínios** com **16 tabelas** principais (v2.1 com RAG support):
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
@@ -168,11 +168,30 @@ O banco de dados está organizado em **4 domínios** com **15 tabelas** principa
 └─────────────────────────────────────────────────────────────────────────────┘
         │
         ├─ has ─────→ (1:1) QUESTION_REPUTATION
+        ├─ has ─────→ (1:1) QUESTION_SOURCES (NEW - RAG support)
         ├─ has ─────→ (N:M) QUESTION_TOPICS
         ├─ has ─────→ (1:N) USER_QUESTION_HISTORY
         ├─ has ─────→ (1:N) QUESTION_FEEDBACK
         ├─ has ─────→ (1:N) QUESTION_REVIEWS
         └─ has ─────→ (N:M) EXAM_QUESTIONS
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│         6A. QUESTION_SOURCES (Dual-Corpus RAG Control) [NEW v2.1]           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ PK  id (UUID)                                                                │
+│ FK  question_id (UUID) UNIQUE REFERENCES questions(id)                      │
+│     source_type (VARCHAR)      ← 'real_exam', 'ai_generated', 'expert_appr' │
+│     rag_eligible (BOOLEAN)     ← true for real_exam only                    │
+│     created_at (TIMESTAMPTZ)                                               │
+│     approved_at (TIMESTAMPTZ)  ← null until expert review complete         │
+│     approved_by (UUID) → USERS.id (nullable)                               │
+│     INDEX: (source_type, rag_eligible) - CRITICAL FOR RAG QUERIES          │
+│                                                                              │
+│ **CRITICAL:** RAG queries MUST filter: WHERE source_type='real_exam'        │
+│              AND rag_eligible=true (enforced at database level)            │
+│                                                                              │
+│ **Audit Trigger:** Logs ALL source_type changes to audit_log table         │
+└─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │              7. QUESTION_TOPICS (Relacionamento N:M)                         │
@@ -336,9 +355,10 @@ O banco de dados está organizado em **4 domínios** com **15 tabelas** principa
 - **topics** - Sub-tópicos específicos
 - **question_bank_versions** - Versões de importação para versionamento/rollback
 
-### Grupo 3: Questões (3 tabelas)
+### Grupo 3: Questões & RAG (4 tabelas)
 
 - **questions** - Banco de 13,917 questões + geradas
+- **question_sources** - Dual-corpus RAG control (source_type + rag_eligible) [NEW v2.1]
 - **question_topics** - Mapeamento N:M (questão → múltiplos tópicos)
 - **question_reputation** - Pontuação 0-10 e estatísticas
 
@@ -469,29 +489,40 @@ CREATE question_reputation (trigger automático)
 
 ---
 
-### Fluxo 2: Geração de Questão com IA
+### Fluxo 2: Geração de Questão com IA (com RAG)
 
 ```text
 [User Request: domain, subject, difficulty]
     ↓
-[RAG: SELECT * FROM questions] (retrieve similar)
+[RAG Query: SELECT from questions WHERE source_type='real_exam' AND rag_eligible=true]
     ↓
-[Claude API] (generate new question)
+[Retrieve 5-10 similar real exam questions as context]
     ↓
-INSERT INTO questions (ai_generated)
+[Gemini API] (generate new question with RAG grounding)
+    ↓
+INSERT INTO questions (ai_generated, generation_metadata)
+    ↓
+INSERT INTO question_sources (source_type='ai_generated', rag_eligible=false)
     ↓
 [Semantic Mapping]
     ↓
 INSERT INTO question_topics
     ↓
-CREATE question_reputation (trigger)
+CREATE question_reputation (trigger, initial_score=0)
+    ↓
+[Expert Review Queue - 100% validation required]
+    ↓
+IF approved: UPDATE question_sources (rag_eligible=true) [NEVER for AI-generated]
 ```
 
 **Tabelas Envolvidas:**
 
+- question_sources (READ for RAG filtering, WRITE for new AI question)
 - questions (read para RAG, write para nova questão)
 - question_topics (insert mappings)
 - question_reputation (auto-create)
+
+**CRITICAL:** RAG filtering enforced at query level (source_type='real_exam' AND rag_eligible=true)
 
 ---
 

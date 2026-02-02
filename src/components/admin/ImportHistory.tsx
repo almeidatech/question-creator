@@ -104,10 +104,9 @@ export const ImportHistory: React.FC<ImportHistoryProps> = ({
                   <td className={styles.filenameCell}>{item.filename}</td>
 
                   <td>
-                    <Badge
-                      variant={getStatusVariant(item.status)}
-                      label={item.status}
-                    />
+                    <Badge variant={getStatusVariant(item.status)}>
+                      {item.status.replace('_', ' ')}
+                    </Badge>
                   </td>
 
                   <td className={styles.numberCell}>

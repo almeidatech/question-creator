@@ -70,6 +70,8 @@ export const ImportHistory: React.FC<ImportHistoryProps> = ({
           value={statusFilter || ''}
           onChange={(e) => setStatusFilter(e.target.value || null)}
           className={styles.filterSelect}
+          aria-label="Filter by status"
+          title="Filter by status"
         >
           <option value="">All Statuses</option>
           <option value="completed">Completed</option>

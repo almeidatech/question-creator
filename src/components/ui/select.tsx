@@ -54,7 +54,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         <select
           ref={ref}
           className={`${baseStyles} ${className}`.replace(/\s+/g, ' ').trim()}
-          aria-invalid={!!errorMessage}
+          {...(errorMessage ? { "aria-invalid": "true" } : {})}
           {...props}
         >
           <option value="">Select an option...</option>

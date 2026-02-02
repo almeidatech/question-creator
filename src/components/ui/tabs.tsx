@@ -36,7 +36,7 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
     return (
       <div ref={ref} className={className} {...props}>
         {/* Tab buttons */}
-        <div className="flex border-b border-neutral-200">
+        <div className="flex border-b border-neutral-200" role="tablist">
           {items.map((item) => (
             <button
               key={item.id}
@@ -50,7 +50,9 @@ export const Tabs = forwardRef<HTMLDivElement, TabsProps>(
                 }
               `}
               role="tab"
-              aria-selected={activeTab === item.id}
+              {...(activeTab === item.id
+                ? { "aria-selected": "true" }
+                : { "aria-selected": "false" })}
               aria-controls={`tab-panel-${item.id}`}
             >
               {item.label}

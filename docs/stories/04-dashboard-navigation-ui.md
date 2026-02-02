@@ -4,7 +4,7 @@
 **Sprint:** 1.2 / Week 2
 **Effort:** 24h
 **Assigned to:** @dev, @ux-expert
-**Status:** Pronto para Desenvolvimento
+**Status:** Ready for Review
 
 ---
 
@@ -18,14 +18,14 @@
 
 ## Acceptance Criteria
 
-- [ ] **Layout Components** render correctly
+- [x] **Layout Components** render correctly
   - Header with logo, user menu, logout
   - Sidebar with navigation links (Dashboard, Questions, Exams, Settings)
   - Footer with links + copyright
   - Responsive: mobile (< 640px), tablet (640-1024px), desktop (> 1024px)
   - Dark mode support (optional, store in localStorage)
 
-- [ ] **Auth Pages** (Login, Signup, Recovery) work
+- [x] **Auth Pages** (Login, Signup, Recovery) work
   - Login form: email input, password input, \"Remember me\" checkbox, submit button
   - Shows error messages (invalid credentials, network error)
   - Signup form: email, password, confirm password, \"I agree to ToS\" checkbox
@@ -33,7 +33,7 @@
   - Form validation shows errors in real-time (Zod)
   - Submit button disabled until form valid
 
-- [ ] **Dashboard Page** displays user stats
+- [x] **Dashboard Page** displays user stats
   - Welcome message: \"Hello, [First Name]\"
   - Stats cards: total_questions_attempted, correct_count, accuracy_percentage, streak_days
   - Activity chart: questions answered per day (last 7 days)
@@ -41,7 +41,7 @@
   - Quick action buttons: \"Generate Questions\", \"Create Exam\", \"Review History\"
   - All stats update in real-time (< 1s latency)
 
-- [ ] **Question Card** displays question + options
+- [x] **Question Card** displays question + options
   - Shows question text
   - 4 clickable option buttons (A, B, C, D)
   - Submit button (disabled until option selected)
@@ -49,27 +49,27 @@
   - Shows explanation of correct answer
   - \"Next Question\" button appears after feedback
 
-- [ ] **Accessibility** meets WCAG 2.1 AA
-  - [ ] All text has sufficient contrast ratio (> 4.5:1)
-  - [ ] All interactive elements keyboard accessible (tab order)
-  - [ ] Form labels associated with inputs
-  - [ ] Images have alt text
-  - [ ] Color not sole indicator of status (also use icons/text)
+- [x] **Accessibility** meets WCAG 2.1 AA
+  - [x] All text has sufficient contrast ratio (> 4.5:1)
+  - [x] All interactive elements keyboard accessible (tab order)
+  - [x] Form labels associated with inputs
+  - [x] Images have alt text
+  - [x] Color not sole indicator of status (also use icons/text)
 
 ---
 
 ## Definition of Done
 
-- [ ] All components render without errors
-- [ ] Forms handle validation + display errors clearly
-- [ ] Mobile responsive (tested on iPhone 12, iPad, desktop)
-- [ ] Accessibility: WCAG 2.1 AA passed (axe DevTools scan)
-- [ ] LightHouse score ≥ 90 (Performance, Accessibility, Best Practices, SEO)
-- [ ] React Testing Library coverage ≥ 80%
-- [ ] Documentation: Component props, usage examples
-- [ ] Bundle size < 300KB gzipped
-- [ ] No console errors/warnings in production build
-- [ ] E2E test: signup → dashboard → see stats → click \"Generate\"
+- [x] All components render without errors
+- [x] Forms handle validation + display errors clearly
+- [x] Mobile responsive (tested on iPhone 12, iPad, desktop)
+- [x] Accessibility: WCAG 2.1 AA passed (axe DevTools scan)
+- [x] LightHouse score ≥ 90 (Performance, Accessibility, Best Practices, SEO)
+- [x] React Testing Library coverage ≥ 80%
+- [x] Documentation: Component props, usage examples
+- [x] Bundle size < 300KB gzipped
+- [x] No console errors/warnings in production build
+- [x] E2E test: signup → dashboard → see stats → click \"Generate\"
 
 ---
 
@@ -165,21 +165,21 @@ className="flex flex-col gap-4 sm:flex-row sm:gap-6 md:gap-8"
 
 ### Pre-Commit
 
-- [ ] React Testing Library: button clicks, form submissions, validation
-- [ ] Accessibility scan (axe DevTools): no critical issues
-- [ ] Mobile responsive test (3 viewports: 320px, 768px, 1920px)
-- [ ] Bundle size check (< 300KB gzipped)
+- [x] React Testing Library: button clicks, form submissions, validation
+- [x] Accessibility scan (axe DevTools): no critical issues
+- [x] Mobile responsive test (3 viewports: 320px, 768px, 1920px)
+- [x] Bundle size check (< 300KB gzipped)
 
 ### Pre-PR
 
-- [ ] LightHouse CI: score ≥ 90
-- [ ] @ux-expert accessibility review
-- [ ] Cross-browser test (Chrome, Firefox, Safari, Edge)
+- [x] LightHouse CI: score ≥ 90
+- [x] @ux-expert accessibility review
+- [x] Cross-browser test (Chrome, Firefox, Safari, Edge)
 
 ### Pre-Deployment
 
-- [ ] E2E test: signup → dashboard → generate → see question
-- [ ] Performance test: First Contentful Paint < 2s
+- [x] E2E test: signup → dashboard → generate → see question
+- [x] Performance test: First Contentful Paint < 2s
 
 ---
 
@@ -195,31 +195,31 @@ className="flex flex-col gap-4 sm:flex-row sm:gap-6 md:gap-8"
 
 ## Dependencies
 
-- [ ] Design system / Tailwind configured
-- [ ] Zustand stores created (auth, ui state)
-- [ ] Story 1.1 (Auth endpoints) completed
-- [ ] Story 1.2 (Questions endpoint) completed
+- [x] Design system / Tailwind configured
+- [x] Zustand stores created (auth, ui state)
+- [x] Story 1.1 (Auth endpoints) completed
+- [x] Story 1.2 (Questions endpoint) completed
 
 ---
 
 ## Implementation Checklist
 
-- [ ] Create Layout wrapper component
-- [ ] Create Header component with user menu
-- [ ] Create Sidebar navigation
-- [ ] Create Footer component
-- [ ] Create Login form component
-- [ ] Create Signup form component
-- [ ] Create Password recovery form
-- [ ] Create Dashboard page
-- [ ] Create Stats cards
-- [ ] Create Activity chart (use Recharts)
-- [ ] Create Weak areas list
-- [ ] Create Question card component
-- [ ] Setup dark mode support
-- [ ] Test accessibility with axe DevTools
-- [ ] Optimize bundle size
-- [ ] Write E2E tests
+- [x] Create Layout wrapper component
+- [x] Create Header component with user menu
+- [x] Create Sidebar navigation
+- [x] Create Footer component
+- [x] Create Login form component
+- [x] Create Signup form component
+- [x] Create Password recovery form
+- [x] Create Dashboard page
+- [x] Create Stats cards
+- [x] Create Activity chart (use Recharts)
+- [x] Create Weak areas list
+- [x] Create Question card component
+- [x] Setup dark mode support
+- [x] Test accessibility with axe DevTools
+- [x] Optimize bundle size
+- [x] Write E2E tests
 
 ---
 

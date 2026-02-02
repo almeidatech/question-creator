@@ -163,14 +163,14 @@ export const ImportHistory: React.FC<ImportHistoryProps> = ({
  */
 function getStatusVariant(
   status: string
-): 'primary' | 'secondary' | 'danger' | 'success' {
+): 'primary' | 'success' | 'error' | 'warning' | 'info' | 'neutral' {
   switch (status) {
     case 'completed':
       return 'success';
     case 'in_progress':
       return 'primary';
     case 'failed':
-      return 'danger';
+      return 'error';
     case 'queued':
       return 'secondary';
     default:

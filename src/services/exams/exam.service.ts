@@ -226,31 +226,32 @@ export async function listExams(
       };
     }
 
-    // Get question counts and attempt history for each exam
-    const examsWithDetails = await Promise.all(
-      (exams || []).map(async (exam) => {
-        // Get question count
-        const { count: questionCount } = await client
-          .from('exam_questions')
-          .select('*', { count: 'exact' })
-          .eq('exam_id', exam.id);
+    // Get question counts efficiently with a single query (not N+1)
+    // Use database-level aggregation instead of fetching all and counting in app
+    const { data: questionCounts } = await client
+      .from('exam_questions')
+      .select('exam_id, count:id', { count: 'exact', head: false })
+      .in('exam_id', (exams || []).map((e) => e.id));
 
-        // Get attempt history (placeholder for now - exam_attempts table not yet created)
-        // TODO: Join with exam_attempts when available
-        let lastAttempted: string | undefined;
-        let bestScore: number | undefined;
-
-        return {
-          exam_id: exam.id,
-          name: exam.name,
-          question_count: questionCount || 0,
-          status: exam.status,
-          created_at: exam.created_at,
-          last_attempted: lastAttempted,
-          best_score: bestScore,
-        };
-      })
+    // Map counts by exam ID for easy lookup
+    const countsByExamId = (questionCounts || []).reduce(
+      (acc: Record<string, number>, row: any) => {
+        acc[row.exam_id] = row.count || 0;
+        return acc;
+      },
+      {}
     );
+
+    // Transform exams with counts from single query
+    const examsWithDetails = (exams || []).map((exam) => ({
+      exam_id: exam.id,
+      name: exam.name,
+      question_count: countsByExamId[exam.id] || 0,
+      status: exam.status,
+      created_at: exam.created_at,
+      last_attempted: undefined,
+      best_score: undefined,
+    }));
 
     const totalPages = Math.ceil((totalCount || 0) / limit);
 

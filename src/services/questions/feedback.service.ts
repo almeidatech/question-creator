@@ -106,24 +106,31 @@ export async function createFeedback(
 
 /**
  * Check if question should be flagged (3+ reports in 24h)
+ * Returns tuple: [shouldFlag, reportCount] to avoid duplicate queries
  */
-export async function shouldFlagQuestion(questionId: string): Promise<boolean> {
+export async function shouldFlagQuestion(questionId: string): Promise<[boolean, number]> {
   const count = await countRecentReports(questionId);
-  return count >= 3;
+  return [count >= 3, count];
 }
 
 /**
  * Update question reputation status to under_review
  * Note: Trigger will also handle this, but we call it directly to be explicit
  */
-export async function flagQuestionForReview(questionId: string): Promise<boolean> {
+export async function flagQuestionForReview(
+  questionId: string,
+  reportCount?: number
+): Promise<boolean> {
   const client = getSupabaseServiceClient();
+
+  // Use provided count if available to avoid duplicate query; otherwise query
+  const problemReports = reportCount ?? (await countRecentReports(questionId));
 
   const { error } = await client
     .from('question_reputation')
     .update({
       status: 'under_review',
-      problem_reports: await countRecentReports(questionId),
+      problem_reports: problemReports,
     })
     .eq('question_id', questionId);
 
@@ -159,9 +166,11 @@ export async function submitFeedback(
     }
 
     // Check if question should be flagged (3+ reports in 24h)
-    const shouldFlag = await shouldFlagQuestion(questionId);
+    // shouldFlagQuestion now returns [shouldFlag, reportCount] to avoid duplicate queries
+    const [shouldFlag, reportCount] = await shouldFlagQuestion(questionId);
     if (shouldFlag) {
-      await flagQuestionForReview(questionId);
+      // Pass reportCount to avoid duplicate countRecentReports() query
+      await flagQuestionForReview(questionId, reportCount);
     }
 
     return {

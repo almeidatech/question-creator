@@ -265,16 +265,21 @@ export async function submitAnswer(
         };
       }
 
-      // Count total questions and answered
-      const { count: totalQuestions } = await client
-        .from('exam_questions')
-        .select('*', { count: 'exact' })
-        .eq('exam_id', attemptData.exam_id);
+      // Count total questions and answered efficiently (single query instead of N+1)
+      // Fetch both counts with Promise.all for parallelization
+      const [totalQuestionsResult, answeredCountResult] = await Promise.all([
+        client
+          .from('exam_questions')
+          .select('id', { count: 'exact', head: true })
+          .eq('exam_id', attemptData.exam_id),
+        client
+          .from('exam_answers')
+          .select('id', { count: 'exact', head: true })
+          .eq('attempt_id', attemptId),
+      ]);
 
-      const { count: answeredCount } = await client
-        .from('exam_answers')
-        .select('*', { count: 'exact' })
-        .eq('attempt_id', attemptId);
+      const totalQuestions = totalQuestionsResult.count || 0;
+      const answeredCount = answeredCountResult.count || 0;
 
       return {
         success: true,

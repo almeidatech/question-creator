@@ -3,6 +3,7 @@
  * Validates JWT tokens on protected routes
  */
 
+import { NextApiRequest } from 'next';
 import { AuthService } from '@/src/services/auth/auth.service';
 import { RateLimitService } from '@/src/services/auth/rate-limit.service';
 
@@ -45,6 +46,22 @@ export function validateAuthToken(authHeader: string | undefined): AuthResult {
     userId: verification.userId,
     email: verification.email,
   };
+}
+
+/**
+ * Verify authentication and extract user ID from request
+ * Convenience function for API route handlers
+ * Returns null if request is not authenticated
+ */
+export function verifyAuth(req: NextApiRequest): string | null {
+  const authHeader = req.headers.authorization as string | undefined;
+  const result = validateAuthToken(authHeader);
+
+  if (!result.authenticated || !result.userId) {
+    return null;
+  }
+
+  return result.userId;
 }
 
 /**

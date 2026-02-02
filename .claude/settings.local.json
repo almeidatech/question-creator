@@ -19,7 +19,9 @@
       "Bash(xargs:*)",
       "Bash(test:*)",
       "Bash(npm run build:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(git reset:*)",
+      "Bash(git restore:*)"
     ]
   }
 }

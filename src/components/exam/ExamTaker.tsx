@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Card, Button, Badge, Spinner } from '@/src/components/ui';
+import { Card, Button, Badge, Spinner } from '@/components/ui';
 import { useTimer } from './hooks';
 import styles from './ExamTaker.module.css';
 

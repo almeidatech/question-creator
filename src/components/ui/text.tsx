@@ -2,7 +2,7 @@
 
 import { forwardRef } from 'react';
 import type { HTMLAttributes } from 'react';
-import type { TextStyle } from '@/src/tokens';
+import type { TextStyle } from '@/tokens';
 
 /**
  * Text/Typography Component Props

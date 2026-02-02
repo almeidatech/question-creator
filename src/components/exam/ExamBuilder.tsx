@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Card, Button, Input, Select, Badge, Spinner } from '@/src/components/ui';
-import { DifficultyBadge } from '@/src/components/ui/difficulty-badge';
+import { Card, Button, Input, Select, Badge, Spinner } from '@/components/ui';
+import { DifficultyBadge } from '@/components/ui/difficulty-badge';
 import styles from './ExamBuilder.module.css';
 
 interface Question {

@@ -12,8 +12,8 @@
 
 import React from 'react';
 import { Users, FileText, Upload, Database } from 'lucide-react';
-import { StatsCard } from '@/src/components/dashboard/StatsCard';
-import { DashboardStats } from '@/src/services/admin/dashboard.service';
+import { StatsCard } from '@/components/dashboard/StatsCard';
+import { DashboardStats } from '@/services/admin/dashboard.service';
 
 interface SystemMetricsProps {
   stats: DashboardStats | null;

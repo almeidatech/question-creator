@@ -7,9 +7,9 @@
 
 import React, { useState } from 'react';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { Button } from '@/src/components/ui/button';
-import { Badge } from '@/src/components/ui/badge';
-import { ReviewQueueItem } from '@/src/services/admin/review.service';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ReviewQueueItem } from '@/services/admin/review.service';
 
 interface ReviewQueuePanelProps {
   items: ReviewQueueItem[];

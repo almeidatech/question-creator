@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Card, Button, Badge, Spinner } from '@/src/components/ui';
+import { Card, Button, Badge, Spinner } from '@/components/ui';
 import styles from './ResultsPage.module.css';
 
 interface TopicBreakdown {

@@ -12,13 +12,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Layout } from '@/src/components/layout/Layout';
-import { Button } from '@/src/components/ui/button';
-import { SystemMetrics } from '@/src/components/admin/SystemMetrics';
-import { ImportHistory } from '@/src/components/admin/ImportHistory';
-import { ReviewQueuePanel } from '@/src/components/admin/ReviewQueuePanel';
-import { DashboardStats } from '@/src/services/admin/dashboard.service';
-import { ReviewQueueItem, processReviewDecision } from '@/src/services/admin/review.service';
+import { Layout } from '@/components/layout/Layout';
+import { Button } from '@/components/ui/button';
+import { SystemMetrics } from '@/components/admin/SystemMetrics';
+import { ImportHistory } from '@/components/admin/ImportHistory';
+import { ReviewQueuePanel } from '@/components/admin/ReviewQueuePanel';
+import { DashboardStats } from '@/services/admin/dashboard.service';
+import { ReviewQueueItem, processReviewDecision } from '@/services/admin/review.service';
 import { RefreshCw } from 'lucide-react';
 
 interface DashboardState {

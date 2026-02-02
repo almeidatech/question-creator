@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Card, Button, Badge, Input, Select } from '@/src/components/ui';
+import { Card, Button, Badge, Input, Select } from '@/components/ui';
 import styles from './ExamHistory.module.css';
 
 interface ExamAttempt {

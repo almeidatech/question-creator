@@ -5,11 +5,11 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { Badge } from '@/src/components/ui/badge';
-import { Button } from '@/src/components/ui/button';
-import { Input } from '@/src/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { ChevronRight, Eye, RotateCcw } from 'lucide-react';
-import { ImportHistoryItem } from '@/src/services/admin/dashboard.service';
+import { ImportHistoryItem } from '@/services/admin/dashboard.service';
 import styles from './ImportHistory.module.css';
 
 interface ImportHistoryProps {

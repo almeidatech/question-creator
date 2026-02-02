@@ -171,9 +171,9 @@ function getStatusVariant(
     case 'failed':
       return 'error';
     case 'queued':
-      return 'secondary';
+      return 'warning';
     default:
-      return 'secondary';
+      return 'neutral';
   }
 }
 

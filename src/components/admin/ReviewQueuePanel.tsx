@@ -68,7 +68,7 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
       {/* Header */}
       <div className="mb-4 flex justify-between items-center">
         <h3 className="text-lg font-semibold dark:text-white">Review Queue</h3>
-        <Badge variant="primary" label={`${items.length} pending`} />
+        <Badge variant="primary">{`${items.length} pending`}</Badge>
       </div>
 
       {/* Empty State */}
@@ -103,7 +103,7 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
               {item.feedback && item.feedback.length > 0 && (
                 <div className="mb-3 flex gap-1 flex-wrap">
                   {item.feedback.map((feedback, idx) => (
-                    <Badge key={idx} variant="secondary" label={feedback} />
+                    <Badge key={idx} variant="info">{feedback}</Badge>
                   ))}
                 </div>
               )}
@@ -127,7 +127,7 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  variant="secondary"
+                  variant="info"
                   onClick={() => handleApprove(item.question_id)}
                   disabled={processingId === item.question_id}
                   className="flex-1 text-xs"

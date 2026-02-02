@@ -269,22 +269,29 @@ test_database_health() {
 test_response_time() {
   print_test "Test 7: API Response Time"
 
-  local start=$(date +%s%3N)
+  # Use standard millisecond measurement (reliable cross-platform)
+  local start=$(date +%s%N)
+  local start_ms=$((start / 1000000))
 
   curl -s -X GET "$PROD_URL/api/exams?limit=1" \
     -H "Content-Type: application/json" > /dev/null 2>&1
 
-  local end=$(date +%s%3N)
-  local duration=$((end - start))
+  local end=$(date +%s%N)
+  local end_ms=$((end / 1000000))
+  local duration=$((end_ms - start_ms))
 
-  # Acceptable: < 3000ms for smoke test
-  if [[ $duration -lt 3000 ]]; then
-    echo -e "✓ PASS (${duration}ms)"
+  # Success criteria: target < 500ms, warning at 2000ms
+  if [[ $duration -lt 500 ]]; then
+    echo -e "${GREEN}✓ PASS (${duration}ms - excellent)${NC}"
+    ((TESTS_PASSED++))
+    return 0
+  elif [[ $duration -lt 2000 ]]; then
+    echo -e "✓ PASS (${duration}ms - acceptable)"
     ((TESTS_PASSED++))
     return 0
   else
-    echo -e "${YELLOW}⚠ SLOW (${duration}ms)${NC}"
-    ((TESTS_PASSED++))  # Still pass but warn
+    echo -e "${YELLOW}⚠ SLOW (${duration}ms - exceeds 2000ms threshold)${NC}"
+    ((TESTS_PASSED++))  # Still pass smoke test (system is up, just slow)
     return 0
   fi
 }
@@ -296,15 +303,16 @@ test_response_time() {
 test_connectivity() {
   print_test "Test 8: Basic Connectivity"
 
-  # Try to ping the API
-  local response=$(curl -s -w "\n%{http_code}" -X OPTIONS \
-    "$PROD_URL/api/exams" 2>/dev/null)
+  # Try to ping the API with GET (more reliable than OPTIONS)
+  local response=$(curl -s -w "\n%{http_code}" -X GET \
+    "$PROD_URL/api/exams?limit=1" \
+    -H "Content-Type: application/json" 2>/dev/null)
 
   local http_code=$(echo "$response" | tail -1)
 
-  # OPTIONS or GET should respond (no 503/504 errors)
+  # Should not get service unavailable errors (503/504 indicate down)
   if [[ "$http_code" != "503" ]] && [[ "$http_code" != "504" ]]; then
-    test_pass "Test 8: Connectivity"
+    test_pass "Test 8: Basic Connectivity"
     return 0
   else
     test_fail "Test 8: Server not responding (HTTP $http_code)"

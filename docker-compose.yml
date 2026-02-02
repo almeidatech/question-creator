@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: question-creator-app
+    restart: unless-stopped
+
+    # Port mapping - internal port 3000, exposed for Nginx proxy
+    ports:
+      - "3000:3000"
+
+    # Environment variables
+    env_file:
+      - .env
+
+    # Override specific env vars for production
+    environment:
+      NODE_ENV: production
+      # Redis on automation server (Hetzner internal network)
+      REDIS_URL: redis://10.0.0.3:6379
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+
+    # Logging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+    # Security options
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+    # Volumes for logs (optional)
+    volumes:
+      - ./logs:/app/logs:rw
+
+  # Optional: Local development Redis (commented out - using remote)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: question-creator-redis
+  #   restart: unless-stopped
+  #   ports:
+  #     - "6379:6379"
+  #   command: redis-server --requirepass your-redis-password
+  #   healthcheck:
+  #     test: ["CMD", "redis-cli", "ping"]
+  #     interval: 10s
+  #     timeout: 3s
+  #     retries: 3
+
+networks:
+  default:
+    name: question-creator-network
+    driver: bridge
+
+# Usage:
+# docker-compose up -d          # Start services
+# docker-compose ps             # Check status
+# docker-compose logs -f app    # Follow app logs
+# docker-compose down           # Stop services
+# docker-compose down -v        # Stop and remove volumes

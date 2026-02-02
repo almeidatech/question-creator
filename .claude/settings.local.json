@@ -21,7 +21,9 @@
       "Bash(npm run build:*)",
       "Bash(npm run:*)",
       "Bash(git reset:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(cd:*)",
+      "Bash(ssh:*)"
     ]
   }
 }

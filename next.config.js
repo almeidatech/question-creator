@@ -2,7 +2,6 @@
 const nextConfig = {
   // Production optimizations
   reactStrictMode: true,
-  swcMinify: true,
 
   // Environment variables
   env: {
@@ -58,10 +57,19 @@ const nextConfig = {
   // Images configuration
   images: {
     unoptimized: process.env.NODE_ENV === 'production' ? false : true,
-    domains: [
-      'localhost',
-      'question-creator.olmedatech.com',
-      'csgidstwiswdptalcqbt.supabase.co',
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: 'question-creator.olmedatech.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'csgidstwiswdptalcqbt.supabase.co',
+      },
     ],
   },
 

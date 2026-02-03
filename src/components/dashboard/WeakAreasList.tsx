@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import { WeakArea } from '@/stores';
 import { AlertTriangle } from 'lucide-react';
 
@@ -10,6 +11,7 @@ interface WeakAreasListProps {
 }
 
 export const WeakAreasList: React.FC<WeakAreasListProps> = ({ areas }) => {
+  const { t } = useI18n();
   const { darkMode } = useUIStore();
 
   const sortedAreas = [...areas].sort((a, b) => a.accuracy - b.accuracy);
@@ -20,10 +22,10 @@ export const WeakAreasList: React.FC<WeakAreasListProps> = ({ areas }) => {
         darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'
       }`}
     >
-      <h3 className="text-lg font-semibold mb-4">Areas for Improvement</h3>
+      <h3 className="text-lg font-semibold mb-4">{t('dashboard.areasToImprove')}</h3>
       {sortedAreas.length === 0 ? (
         <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-          Great job! No weak areas detected.
+          {t('dashboard.noWeakAreas')}
         </p>
       ) : (
         <div className="space-y-3">

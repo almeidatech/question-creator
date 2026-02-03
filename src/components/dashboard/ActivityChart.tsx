@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import { ActivityData } from '@/stores';
 
 interface ActivityChartProps {
@@ -22,6 +23,7 @@ interface ActivityChartProps {
 }
 
 export const ActivityChart: React.FC<ActivityChartProps> = ({ data, type = 'line' }) => {
+  const { t } = useI18n();
   const { darkMode } = useUIStore();
 
   if (data.length === 0) {
@@ -32,7 +34,7 @@ export const ActivityChart: React.FC<ActivityChartProps> = ({ data, type = 'line
         } flex items-center justify-center h-64`}
       >
         <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-          No activity data available
+          {t('dashboard.noActivityData')}
         </p>
       </div>
     );
@@ -57,7 +59,7 @@ export const ActivityChart: React.FC<ActivityChartProps> = ({ data, type = 'line
         darkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'
       }`}
     >
-      <h3 className="text-lg font-semibold mb-4">Activity (Last 7 Days)</h3>
+      <h3 className="text-lg font-semibold mb-4">{t('dashboard.thisWeekActivity')}</h3>
       <ResponsiveContainer width="100%" height={300}>
         <ChartComponent data={data} margin={chartConfig.margin}>
           <CartesianGrid

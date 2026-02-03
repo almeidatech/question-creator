@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, ChevronRight } from 'lucide-react';
 
@@ -33,6 +34,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   onNext,
   isLoading = false,
 }) => {
+  const { t } = useI18n();
   const { darkMode } = useUIStore();
   const [selectedOption, setSelectedOption] = useState<OptionKey | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -71,7 +73,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">{question.text}</h2>
         <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          Question ID: {question.id}
+          {t('questions.questionId')}: {question.id}
         </p>
       </div>
 
@@ -164,7 +166,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             </div>
             <div>
               <h3 className="font-bold mb-2">
-                {isCorrect ? 'Correct!' : 'Incorrect'}
+                {isCorrect ? t('questions.correct') : t('questions.incorrect')}
               </h3>
               <p className="text-sm">{question.explanation}</p>
             </div>
@@ -180,14 +182,14 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             disabled={!selectedOption || isLoading}
             className="flex-1"
           >
-            {isLoading ? 'Submitting...' : 'Submit Answer'}
+            {isLoading ? t('messages.redirecting') : t('common.submit')}
           </Button>
         ) : (
           <Button
             onClick={handleNext}
             className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700"
           >
-            Next Question
+            {t('common.next')}
             <ChevronRight size={18} />
           </Button>
         )}

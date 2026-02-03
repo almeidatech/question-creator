@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Card, Button, Badge, Input, Select } from '@/components/ui';
+import { useI18n } from '@/i18n/i18nContext';
 import styles from './ExamHistory.module.css';
 
 interface ExamAttempt {
@@ -44,6 +45,7 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
   onDelete,
   isLoading = false,
 }) => {
+  const { t } = useI18n();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'passed' | 'failed'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'score'>('date');
@@ -106,7 +108,7 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
   }, [attempts]);
 
   const handleDelete = async (attemptId: string) => {
-    if (!onDelete || !confirm('Are you sure you want to delete this attempt?')) {
+    if (!onDelete || !confirm(t('messages.confirmDelete'))) {
       return;
     }
 
@@ -123,29 +125,29 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
       {/* Stats Summary */}
       <div className={styles.statsGrid}>
         <Card className={styles.statCard}>
-          <h3>Total Attempts</h3>
+          <h3>{t('exams.totalAttempts')}</h3>
           <p className={styles.statValue}>{stats.total}</p>
         </Card>
 
         <Card className={styles.statCard}>
-          <h3>Passed</h3>
+          <h3>{t('exams.passed')}</h3>
           <p className={`${styles.statValue} ${styles.success}`}>{stats.passed}</p>
         </Card>
 
         <Card className={styles.statCard}>
-          <h3>Failed</h3>
+          <h3>{t('exams.failed')}</h3>
           <p className={`${styles.statValue} ${stats.failed > 0 ? styles.error : ''}`}>
             {stats.failed}
           </p>
         </Card>
 
         <Card className={styles.statCard}>
-          <h3>Average Score</h3>
+          <h3>{t('exams.averageScore')}</h3>
           <p className={styles.statValue}>{stats.avgScore.toFixed(1)}%</p>
         </Card>
 
         <Card className={styles.statCard}>
-          <h3>Pass Rate</h3>
+          <h3>{t('exams.passRate')}</h3>
           <p className={styles.statValue}>{stats.passRate.toFixed(0)}%</p>
         </Card>
       </div>
@@ -154,7 +156,7 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
       <Card className={styles.filterCard}>
         <div className={styles.filterGroup}>
           <Input
-            placeholder="Search exams..."
+            placeholder={t('exams.searchExams')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={styles.searchInput}
@@ -164,26 +166,26 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as 'all' | 'passed' | 'failed')}
           >
-            <option value="all">All Results</option>
-            <option value="passed">Passed</option>
-            <option value="failed">Failed</option>
+            <option value="all">{t('exams.allResults')}</option>
+            <option value="passed">{t('exams.passed')}</option>
+            <option value="failed">{t('exams.failed')}</option>
           </Select>
 
           <Select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value as 'all' | 'week' | 'month')}
           >
-            <option value="all">All Dates</option>
-            <option value="week">Last Week</option>
-            <option value="month">Last Month</option>
+            <option value="all">{t('exams.allDates')}</option>
+            <option value="week">{t('exams.lastWeek')}</option>
+            <option value="month">{t('exams.lastMonth')}</option>
           </Select>
 
           <Select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'date' | 'score')}
           >
-            <option value="date">Newest First</option>
-            <option value="score">Highest Score</option>
+            <option value="date">{t('exams.newestFirst')}</option>
+            <option value="score">{t('exams.highestScore')}</option>
           </Select>
         </div>
       </Card>
@@ -191,19 +193,19 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
       {/* Attempts Table */}
       <Card className={styles.tableCard}>
         {filteredAttempts.length === 0 ? (
-          <p className={styles.noAttempts}>No exam attempts found</p>
+          <p className={styles.noAttempts}>{t('exams.noAttemptsFound')}</p>
         ) : (
           <div className={styles.tableWrapper}>
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Exam</th>
-                  <th>Date</th>
-                  <th>Score</th>
-                  <th>Status</th>
-                  <th>Questions</th>
-                  <th>Time</th>
-                  <th>Actions</th>
+                  <th>{t('exams.exam')}</th>
+                  <th>{t('exams.date')}</th>
+                  <th>{t('exams.score')}</th>
+                  <th>{t('exams.status')}</th>
+                  <th>{t('exams.questions')}</th>
+                  <th>{t('exams.time')}</th>
+                  <th>{t('common.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -218,7 +220,7 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
                       <Badge
                         className={attempt.passing ? styles.passingBadge : styles.failingBadge}
                       >
-                        {attempt.passing ? '✓ Passed' : '✗ Failed'}
+                        {attempt.passing ? t('exams.passed') : t('exams.failed')}
                       </Badge>
                     </td>
                     <td className={styles.questions}>
@@ -234,7 +236,7 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
                             onClick={() => onReview(attempt.id)}
                             disabled={isLoading}
                           >
-                            Review
+                            {t('exams.review')}
                           </Button>
                         )}
 
@@ -245,7 +247,7 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
                             onClick={() => onRetake(attempt.id)}
                             disabled={isLoading}
                           >
-                            Retake
+                            {t('exams.retake')}
                           </Button>
                         )}
 
@@ -256,7 +258,7 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
                             onClick={() => handleDelete(attempt.id)}
                             disabled={deletingId === attempt.id || isLoading}
                           >
-                            {deletingId === attempt.id ? 'Deleting...' : 'Delete'}
+                            {deletingId === attempt.id ? t('exams.deleting') : t('common.delete')}
                           </Button>
                         )}
                       </div>

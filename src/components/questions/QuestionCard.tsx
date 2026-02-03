@@ -117,7 +117,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-start gap-3 ${bgColor} disabled:cursor-not-allowed`}
             >
               <div
-                className={`flex-shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold ${
+                className={`shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold ${
                   isSelected
                     ? darkMode
                       ? 'border-blue-400 bg-blue-500 text-white'
@@ -133,10 +133,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                 <p className="font-medium">{question.options[option]}</p>
               </div>
               {isAnswerRevealed && isCorrectOption && (
-                <CheckCircle size={24} className="text-green-500 flex-shrink-0 mt-1" />
+                <CheckCircle size={24} className="text-green-500 shrink-0 mt-1" />
               )}
               {isAnswerRevealed && isSelected && !isCorrect && (
-                <XCircle size={24} className="text-red-500 flex-shrink-0 mt-1" />
+                <XCircle size={24} className="text-red-500 shrink-0 mt-1" />
               )}
             </button>
           );
@@ -157,7 +157,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           }`}
         >
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {isCorrect ? (
                 <CheckCircle size={24} />
               ) : (

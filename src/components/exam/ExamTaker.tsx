@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Card, Button, Badge, Spinner } from '@/components/ui';
 import { useTimer } from './hooks';
+import { useI18n } from '@/i18n/i18nContext';
 import styles from './ExamTaker.module.css';
 
 interface Question {
@@ -34,6 +35,7 @@ export const ExamTaker: React.FC<ExamTakerProps> = ({
   onTimeWarning,
   isLoading = false,
 }) => {
+  const { t } = useI18n();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
@@ -93,15 +95,15 @@ export const ExamTaker: React.FC<ExamTakerProps> = ({
       pause();
       await onComplete(answers);
     } catch (err) {
-      setError('Failed to submit exam. Please try again.');
+      setError(t('messages.failedToSubmitExam'));
       resume();
     } finally {
       setIsSubmitting(false);
     }
-  }, [answers, pause, resume, isSubmitting, onComplete]);
+  }, [answers, pause, resume, isSubmitting, onComplete, t]);
 
   if (!currentQuestion) {
-    return <div>No questions available</div>;
+    return <div>{t('messages.noQuestionsAvailable')}</div>;
   }
 
   const answeredCount = Object.keys(answers).length;
@@ -113,16 +115,16 @@ export const ExamTaker: React.FC<ExamTakerProps> = ({
       {/* Header with Timer */}
       <div className={`${styles.header} ${remaining < 300 ? styles.warning : ''}`}>
         <div className={styles.progressInfo}>
-          <h2>Question {currentQuestionIndex + 1} of {questions.length}</h2>
+          <h2>{t('exams.questionOf', { current: currentQuestionIndex + 1, total: questions.length })}</h2>
           <span className={styles.answered}>
-            Answered: {answeredCount}/{questions.length}
+            {t('exams.answered', { answered: answeredCount, total: questions.length })}
           </span>
         </div>
 
         <div className={`${styles.timer} ${isExpired ? styles.expired : ''}`}>
           <span className={styles.timeDisplay}>{timeDisplay}</span>
           {remaining < 300 && (
-            <span className={styles.warningText}>⚠ Time running out!</span>
+            <span className={styles.warningText}>⚠ {t('messages.timeRunningOut')}</span>
           )}
         </div>
       </div>
@@ -161,7 +163,7 @@ export const ExamTaker: React.FC<ExamTakerProps> = ({
         {/* Sidebar - Questions Navigator */}
         <div className={styles.sidebar}>
           <Card className={styles.navigatorCard}>
-            <h4>Questions</h4>
+            <h4>{t('exams.questions')}</h4>
             <div className={styles.questionGrid}>
               {questions.map((q, idx) => (
                 <button
@@ -174,7 +176,7 @@ export const ExamTaker: React.FC<ExamTakerProps> = ({
                     setQuestionStartTime(Date.now());
                   }}
                   disabled={isExpired || isSubmitting}
-                  title={`Question ${idx + 1}`}
+                  title={t('exams.questionNum', { num: idx + 1 })}
                 >
                   {idx + 1}
                 </button>
@@ -183,10 +185,10 @@ export const ExamTaker: React.FC<ExamTakerProps> = ({
 
             <div className={styles.stats}>
               <p>
-                <strong>Answered:</strong> {answeredCount}
+                <strong>{t('exams.answered')}:</strong> {answeredCount}
               </p>
               <p>
-                <strong>Unanswered:</strong> {unansweredCount}
+                <strong>{t('exams.unanswered')}:</strong> {unansweredCount}
               </p>
             </div>
           </Card>
@@ -199,7 +201,7 @@ export const ExamTaker: React.FC<ExamTakerProps> = ({
               variant="secondary"
               fullWidth
             >
-              ← Previous
+              {t('exams.previous')}
             </Button>
 
             <Button
@@ -212,7 +214,7 @@ export const ExamTaker: React.FC<ExamTakerProps> = ({
               variant="secondary"
               fullWidth
             >
-              Next →
+              {t('exams.next')}
             </Button>
 
             <Button
@@ -221,7 +223,7 @@ export const ExamTaker: React.FC<ExamTakerProps> = ({
               fullWidth
               className={styles.submitButton}
             >
-              {isSubmitting ? <Spinner size="sm" /> : 'Complete & Submit'}
+              {isSubmitting ? <Spinner size="sm" /> : t('exams.completeSubmit')}
             </Button>
           </Card>
         </div>

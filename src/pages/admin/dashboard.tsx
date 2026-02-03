@@ -14,6 +14,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
+import { useI18n } from '@/i18n/i18nContext';
 import { SystemMetrics } from '@/components/admin/SystemMetrics';
 import { ImportHistory } from '@/components/admin/ImportHistory';
 import { ReviewQueuePanel } from '@/components/admin/ReviewQueuePanel';
@@ -31,6 +32,7 @@ interface DashboardState {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const { t } = useI18n();
   const [state, setState] = useState<DashboardState>({
     stats: null,
     reviewQueue: [],
@@ -77,7 +79,7 @@ export default function AdminDashboard() {
     } catch (err) {
       setState((prev) => ({
         ...prev,
-        error: 'Failed to fetch dashboard data',
+        error: t('messages.failedToFetchData'),
         loading: false,
       }));
     } finally {
@@ -128,7 +130,7 @@ export default function AdminDashboard() {
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               <p className="mt-4 text-gray-600 dark:text-gray-400">
-                Loading admin dashboard...
+                {t('admin.loading')}
               </p>
             </div>
           </div>
@@ -145,10 +147,10 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold dark:text-white">
-                Admin Dashboard
+                {t('admin.dashboard')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-                System statistics, imports, and review queue management
+                {t('admin.dashboardDescription')}
               </p>
             </div>
 
@@ -162,7 +164,7 @@ export default function AdminDashboard() {
                 size={16}
                 className={isRefreshing ? 'animate-spin' : ''}
               />
-              Refresh
+              {t('common.refresh')}
             </Button>
           </div>
 
@@ -176,7 +178,7 @@ export default function AdminDashboard() {
           {/* System Metrics */}
           <div>
             <h2 className="text-lg font-semibold mb-4 dark:text-white">
-              System Overview
+              {t('admin.systemOverview')}
             </h2>
             <SystemMetrics stats={state.stats} isLoading={state.loading} />
           </div>
@@ -184,14 +186,14 @@ export default function AdminDashboard() {
           {/* Cache Info */}
           {state.stats && (
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              Last updated: {new Date(state.stats.cached_at).toLocaleTimeString()}
+              {t('admin.lastUpdated', { time: new Date(state.stats.cached_at).toLocaleTimeString() })}
             </div>
           )}
 
           {/* Import History */}
           <div>
             <h2 className="text-lg font-semibold mb-4 dark:text-white">
-              Import History
+              {t('admin.importHistory')}
             </h2>
             <ImportHistory
               imports={state.stats?.recent_imports || []}
@@ -200,7 +202,7 @@ export default function AdminDashboard() {
                 router.push(`/admin/imports/${id}`)
               }
               onRollback={(id) =>
-                handleReviewDecision(id, 'reject', 'Import rolled back')
+                handleReviewDecision(id, 'reject', t('admin.importRolledBack'))
               }
             />
           </div>
@@ -208,7 +210,7 @@ export default function AdminDashboard() {
           {/* Review Queue */}
           <div>
             <h2 className="text-lg font-semibold mb-4 dark:text-white">
-              Question Review Queue
+              {t('admin.questionReviewQueue')}
             </h2>
             <ReviewQueuePanel
               items={state.reviewQueue}

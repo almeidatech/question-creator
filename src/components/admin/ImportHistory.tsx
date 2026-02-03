@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ChevronRight, Eye, RotateCcw } from 'lucide-react';
+import { useI18n } from '@/i18n/i18nContext';
 import { ImportHistoryItem } from '@/services/admin/dashboard.service';
 import styles from './ImportHistory.module.css';
 
@@ -25,6 +26,7 @@ export const ImportHistory: React.FC<ImportHistoryProps> = ({
   onViewDetails,
   onRollback,
 }) => {
+  const { t } = useI18n();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
@@ -51,16 +53,16 @@ export const ImportHistory: React.FC<ImportHistoryProps> = ({
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <h3 className="text-lg font-semibold">Import History</h3>
+        <h3 className="text-lg font-semibold">{t('admin.importHistory')}</h3>
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          {filteredImports.length} imports
+          {t('admin.importCount', { count: filteredImports.length })}
         </span>
       </div>
 
       {/* Filters */}
       <div className={styles.filterBar}>
         <Input
-          placeholder="Search by filename..."
+          placeholder={t('admin.searchByFilename')}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className={styles.searchInput}
@@ -70,34 +72,34 @@ export const ImportHistory: React.FC<ImportHistoryProps> = ({
           value={statusFilter || ''}
           onChange={(e) => setStatusFilter(e.target.value || null)}
           className={styles.filterSelect}
-          aria-label="Filter by status"
-          title="Filter by status"
+          aria-label={t('admin.filterByStatus')}
+          title={t('admin.filterByStatus')}
         >
-          <option value="">All Statuses</option>
-          <option value="completed">Completed</option>
-          <option value="in_progress">In Progress</option>
-          <option value="failed">Failed</option>
-          <option value="queued">Queued</option>
+          <option value="">{t('admin.allStatuses')}</option>
+          <option value="completed">{t('admin.completed')}</option>
+          <option value="in_progress">{t('admin.inProgress')}</option>
+          <option value="failed">{t('admin.failed')}</option>
+          <option value="queued">{t('admin.queued')}</option>
         </select>
       </div>
 
       {/* Table */}
       {filteredImports.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>No imports found</p>
+          <p>{t('admin.noImportsFound')}</p>
         </div>
       ) : (
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
             <thead>
               <tr>
-                <th>Filename</th>
-                <th>Status</th>
-                <th>Imported</th>
-                <th>Duplicates</th>
-                <th>Errors</th>
-                <th>Date</th>
-                <th>Actions</th>
+                <th>{t('admin.filename')}</th>
+                <th>{t('exams.status')}</th>
+                <th>{t('admin.imported')}</th>
+                <th>{t('admin.duplicates')}</th>
+                <th>{t('admin.errors')}</th>
+                <th>{t('exams.date')}</th>
+                <th>{t('common.actions')}</th>
               </tr>
             </thead>
             <tbody>
@@ -107,7 +109,7 @@ export const ImportHistory: React.FC<ImportHistoryProps> = ({
 
                   <td>
                     <Badge variant={getStatusVariant(item.status)}>
-                      {item.status.replace('_', ' ')}
+                      {t(`admin.status.${item.status}`)}
                     </Badge>
                   </td>
 
@@ -130,7 +132,7 @@ export const ImportHistory: React.FC<ImportHistoryProps> = ({
                           size="sm"
                           variant="ghost"
                           onClick={() => onViewDetails?.(item.id)}
-                          title="View Details"
+                          title={t('admin.viewDetails')}
                         >
                           <Eye size={16} />
                         </Button>
@@ -139,7 +141,7 @@ export const ImportHistory: React.FC<ImportHistoryProps> = ({
                           size="sm"
                           variant="ghost"
                           onClick={() => onRollback?.(item.id)}
-                          title="Rollback"
+                          title={t('admin.rollback')}
                         >
                           <RotateCcw size={16} />
                         </Button>

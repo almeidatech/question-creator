@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useI18n } from '@/i18n/i18nContext';
 import { ReviewQueueItem } from '@/services/admin/review.service';
 
 interface ReviewQueuePanelProps {
@@ -24,6 +25,7 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
   onApprove,
   onReject,
 }) => {
+  const { t } = useI18n();
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [rejectNotes, setRejectNotes] = useState('');
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -67,15 +69,15 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
     <div className="border rounded-lg bg-white dark:bg-gray-800 p-6">
       {/* Header */}
       <div className="mb-4 flex justify-between items-center">
-        <h3 className="text-lg font-semibold dark:text-white">Review Queue</h3>
-        <Badge variant="primary">{`${items.length} pending`}</Badge>
+        <h3 className="text-lg font-semibold dark:text-white">{t('admin.reviewQueue')}</h3>
+        <Badge variant="primary">{t('admin.pending', { count: items.length })}</Badge>
       </div>
 
       {/* Empty State */}
       {items.length === 0 ? (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <AlertCircle className="mx-auto mb-2 opacity-50" size={24} />
-          <p>No questions pending review</p>
+          <p>{t('admin.noQuestionsForReview')}</p>
         </div>
       ) : (
         /* Review Items */
@@ -112,12 +114,12 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
               {activeQuestionId === item.question_id && (
                 <div className="mb-3 p-3 bg-white dark:bg-gray-800 rounded border dark:border-gray-600">
                   <label className="block text-xs font-medium mb-2 dark:text-gray-300">
-                    Rejection Notes (optional):
+                    {t('admin.rejectionNotes')}
                   </label>
                   <textarea
                     value={rejectNotes}
                     onChange={(e) => setRejectNotes(e.target.value)}
-                    placeholder="Explain why this question is being rejected..."
+                    placeholder={t('admin.rejectionPlaceholder')}
                     className="w-full p-2 border rounded text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white resize-none h-20"
                   />
                 </div>
@@ -133,7 +135,7 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
                   className="flex-1 text-xs"
                 >
                   <CheckCircle size={14} className="mr-1" />
-                  Approve
+                  {t('admin.approve')}
                 </Button>
 
                 {activeQuestionId === item.question_id ? (
@@ -145,7 +147,7 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
                       disabled={processingId === item.question_id}
                       className="flex-1 text-xs"
                     >
-                      Confirm Reject
+                      {t('admin.confirmReject')}
                     </Button>
                     <Button
                       size="sm"
@@ -156,7 +158,7 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
                       }}
                       className="text-xs"
                     >
-                      Cancel
+                      {t('common.cancel')}
                     </Button>
                   </>
                 ) : (
@@ -168,7 +170,7 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
                     className="flex-1 text-xs"
                   >
                     <XCircle size={14} className="mr-1" />
-                    Reject
+                    {t('admin.reject')}
                   </Button>
                 )}
               </div>

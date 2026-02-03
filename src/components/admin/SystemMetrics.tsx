@@ -13,6 +13,7 @@
 import React from 'react';
 import { Users, FileText, Upload, Database } from 'lucide-react';
 import { StatsCard } from '@/components/dashboard/StatsCard';
+import { useI18n } from '@/i18n/i18nContext';
 import { DashboardStats } from '@/services/admin/dashboard.service';
 
 interface SystemMetricsProps {
@@ -24,6 +25,8 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
   stats,
   isLoading = false,
 }) => {
+  const { t } = useI18n();
+
   if (isLoading || !stats) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -61,7 +64,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Active Users Card */}
       <StatsCard
-        label="Active Users (30d)"
+        label={t('admin.activeUsers')}
         value={stats.users.active_users_30d}
         trend={parseFloat(activeUsersTrend)}
         icon={<Users size={24} />}
@@ -70,7 +73,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
 
       {/* Total Questions Card */}
       <StatsCard
-        label="Total Questions"
+        label={t('admin.totalQuestions')}
         value={stats.questions.total_questions}
         trend={3.2}
         icon={<FileText size={24} />}
@@ -79,7 +82,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
 
       {/* Recent Imports Card */}
       <StatsCard
-        label="Completed Imports"
+        label={t('admin.completedImports')}
         value={stats.imports.total_completed_imports}
         trend={parseFloat(importsTrend)}
         icon={<Upload size={24} />}
@@ -88,7 +91,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
 
       {/* Database Health Card */}
       <StatsCard
-        label="Database Health"
+        label={t('admin.databaseHealth')}
         value={stats.system_health.db_size_mb > 0 ? 98 : 0}
         trend={parseFloat(dbHealthTrend)}
         icon={<Database size={24} />}

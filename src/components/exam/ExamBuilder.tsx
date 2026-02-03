@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Card, Button, Input, Select, Badge, Spinner } from '@/components/ui';
 import { DifficultyBadge } from '@/components/ui/difficulty-badge';
+import { useI18n } from '@/i18n/i18nContext';
 import styles from './ExamBuilder.module.css';
 
 interface Question {
@@ -35,6 +36,7 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
   onSave,
   isLoading = false,
 }) => {
+  const { t } = useI18n();
   const [formData, setFormData] = useState<ExamFormData>({
     name: '',
     description: '',
@@ -69,28 +71,28 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Exam name is required';
+      newErrors.name = t('validation.examNameRequired');
     }
 
     if (selectedQuestions.length < MIN_QUESTIONS) {
-      newErrors.questions = `Minimum ${MIN_QUESTIONS} questions required`;
+      newErrors.questions = t('validation.minQuestionsRequired', { min: MIN_QUESTIONS });
     }
 
     if (selectedQuestions.length > MAX_QUESTIONS) {
-      newErrors.questions = `Maximum ${MAX_QUESTIONS} questions allowed`;
+      newErrors.questions = t('validation.maxQuestionsAllowed', { max: MAX_QUESTIONS });
     }
 
     if (formData.duration_minutes < MIN_DURATION || formData.duration_minutes > MAX_DURATION) {
-      newErrors.duration = `Duration must be between ${MIN_DURATION} and ${MAX_DURATION} minutes`;
+      newErrors.duration = t('validation.durationRange', { min: MIN_DURATION, max: MAX_DURATION });
     }
 
     if (formData.passing_score < 0 || formData.passing_score > 100) {
-      newErrors.passing_score = 'Passing score must be between 0 and 100';
+      newErrors.passing_score = t('validation.passingScoreRange');
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData, selectedQuestions]);
+  }, [formData, selectedQuestions, t]);
 
   const handleAddQuestion = (question: Question) => {
     setSelectedQuestions([...selectedQuestions, question]);
@@ -121,7 +123,7 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
     try {
       await onSave(examData);
     } catch (error) {
-      setErrors({ submit: 'Failed to save exam' });
+      setErrors({ submit: t('messages.failedToSaveExam') });
     }
   };
 
@@ -130,29 +132,29 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
       <div className={styles.formSection}>
         <Card className={styles.card}>
           <div className={styles.header}>
-            <h2>Create Exam</h2>
+            <h2>{t('exams.createExam')}</h2>
           </div>
 
           {/* Form Fields */}
           <div className={styles.formGroup}>
-            <label htmlFor="name">Exam Name *</label>
+            <label htmlFor="name">{t('exams.examName')}</label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g., Biology 101 Midterm"
+              placeholder={t('exams.examNamePlaceholder')}
               aria-invalid={!!errors.name}
             />
             {errors.name && <p className={styles.error}>{errors.name}</p>}
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="description">Description</label>
+            <label htmlFor="description">{t('common.description')}</label>
             <textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Optional exam description"
+              placeholder={t('exams.descriptionPlaceholder')}
               className="w-full px-4 py-2 text-base border-2 rounded-lg transition-colors focus:outline-none border-neutral-300 text-neutral-900 placeholder-neutral-400 hover:border-neutral-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               rows={3}
             />
@@ -160,7 +162,7 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
 
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
-              <label htmlFor="duration">Duration (minutes) *</label>
+              <label htmlFor="duration">{t('exams.duration')}</label>
               <Input
                 id="duration"
                 type="number"
@@ -179,7 +181,7 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
             </div>
 
             <div className={styles.formGroup}>
-              <label htmlFor="passingScore">Passing Score (%) *</label>
+              <label htmlFor="passingScore">{t('exams.passingScore')}</label>
               <Input
                 id="passingScore"
                 type="number"
@@ -199,7 +201,7 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
           </div>
 
           <Button onClick={handleSave} disabled={isLoading} className={styles.saveButton}>
-            {isLoading ? <Spinner size="sm" /> : 'Save Exam'}
+            {isLoading ? <Spinner size="sm" /> : t('exams.saveExam')}
           </Button>
 
           {errors.submit && <p className={styles.error}>{errors.submit}</p>}
@@ -207,23 +209,23 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
 
         {/* Summary Panel */}
         <Card className={styles.summaryCard}>
-          <h3>Summary</h3>
+          <h3>{t('common.summary')}</h3>
           <div className={styles.summary}>
             <p>
-              <strong>Questions:</strong> {selectedQuestions.length}/{MAX_QUESTIONS}
+              <strong>{t('exams.questions')}:</strong> {selectedQuestions.length}/{MAX_QUESTIONS}
             </p>
             <p>
-              <strong>Duration:</strong> {formData.duration_minutes} minutes
+              <strong>{t('exams.duration')}:</strong> {formData.duration_minutes} {t('exams.minutes')}
             </p>
             <p>
-              <strong>Avg per question:</strong>{' '}
+              <strong>{t('exams.avgPerQuestion')}:</strong>{' '}
               {selectedQuestions.length > 0
                 ? Math.round((formData.duration_minutes / selectedQuestions.length) * 60)
                 : 0}{' '}
-              seconds
+              {t('exams.seconds')}
             </p>
             <p>
-              <strong>Passing score:</strong> {formData.passing_score}%
+              <strong>{t('exams.passingScore')}:</strong> {formData.passing_score}%
             </p>
           </div>
           {errors.questions && <p className={styles.error}>{errors.questions}</p>}
@@ -233,11 +235,11 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
       <div className={styles.questionsSection}>
         {/* Search and Filter */}
         <Card className={styles.card}>
-          <h3>Select Questions</h3>
+          <h3>{t('exams.selectQuestions')}</h3>
 
           <div className={styles.filterGroup}>
             <Input
-              placeholder="Search questions..."
+              placeholder={t('exams.searchQuestions')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -246,17 +248,17 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
               value={difficultyFilter}
               onChange={(e) => setDifficultyFilter(e.target.value)}
             >
-              <option value="all">All Difficulties</option>
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="hard">Hard</option>
+              <option value="all">{t('exams.allDifficulties')}</option>
+              <option value="easy">{t('difficulty.easy')}</option>
+              <option value="medium">{t('difficulty.medium')}</option>
+              <option value="hard">{t('difficulty.hard')}</option>
             </Select>
 
             <Select
               value={topicFilter}
               onChange={(e) => setTopicFilter(e.target.value)}
             >
-              <option value="all">All Topics</option>
+              <option value="all">{t('exams.allTopics')}</option>
               {uniqueTopics.map(topic => (
                 <option key={topic} value={topic}>
                   {topic}
@@ -268,7 +270,7 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
           {/* Available Questions List */}
           <div className={styles.questionsList}>
             {filteredQuestions.length === 0 ? (
-              <p className={styles.noQuestions}>No questions match your filters</p>
+              <p className={styles.noQuestions}>{t('exams.noQuestionsMatch')}</p>
             ) : (
               filteredQuestions.map(question => (
                 <div key={question.id} className={styles.questionItem}>
@@ -284,7 +286,7 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
                     onClick={() => handleAddQuestion(question)}
                     variant="secondary"
                   >
-                    Add
+                    {t('exams.add')}
                   </Button>
                 </div>
               ))
@@ -294,10 +296,10 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
 
         {/* Selected Questions (Reorderable) */}
         <Card className={styles.card}>
-          <h3>Selected Questions ({selectedQuestions.length})</h3>
+          <h3>{t('exams.selectedQuestions', { count: selectedQuestions.length })}</h3>
 
           {selectedQuestions.length === 0 ? (
-            <p className={styles.noQuestions}>No questions selected yet</p>
+            <p className={styles.noQuestions}>{t('exams.noQuestionsSelected')}</p>
           ) : (
             <div className={styles.selectedList}>
               {selectedQuestions.map((question, index) => (
@@ -326,7 +328,7 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
                     variant="secondary"
                     onClick={() => handleRemoveQuestion(question.id)}
                   >
-                    Remove
+                    {t('exams.remove')}
                   </Button>
                 </div>
               ))}

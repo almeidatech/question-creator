@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Card, Button, Badge, Spinner } from '@/components/ui';
+import { useI18n } from '@/i18n/i18nContext';
 import styles from './ResultsPage.module.css';
 
 interface TopicBreakdown {
@@ -78,6 +79,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({
   onShare,
   isLoading = false,
 }) => {
+  const { t } = useI18n();
   const topicStats = useMemo(
     () => calculateTopicStats(results.answers),
     [results.answers]
@@ -98,10 +100,10 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({
           </div>
           <div className={styles.scoreInfo}>
             <h1 className={styles.status}>
-              {results.passing ? '✓ Passed' : '✗ Failed'}
+              {results.passing ? t('results.passed') : t('results.failed')}
             </h1>
             <p className={styles.details}>
-              {results.correct_answers} out of {results.total_questions} questions correct
+              {t('results.questionsCorrect', { correct: results.correct_answers, total: results.total_questions })}
             </p>
           </div>
         </div>
@@ -110,29 +112,29 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({
       {/* Stats Grid */}
       <div className={styles.statsGrid}>
         <Card className={styles.statCard}>
-          <h3>Time Spent</h3>
+          <h3>{t('results.timeSpent')}</h3>
           <p className={styles.statValue}>{formatTime(results.time_spent_minutes)}</p>
         </Card>
 
         <Card className={styles.statCard}>
-          <h3>Questions</h3>
+          <h3>{t('exams.questions')}</h3>
           <p className={styles.statValue}>{results.total_questions}</p>
         </Card>
 
         <Card className={styles.statCard}>
-          <h3>Accuracy</h3>
+          <h3>{t('results.accuracy')}</h3>
           <p className={styles.statValue}>{scorePercentage}%</p>
         </Card>
 
         <Card className={styles.statCard}>
-          <h3>Weak Areas</h3>
+          <h3>{t('results.weakAreas')}</h3>
           <p className={styles.statValue}>{weekAreas.length}</p>
         </Card>
       </div>
 
       {/* Topic Breakdown */}
       <Card className={styles.section}>
-        <h2>Topic Breakdown</h2>
+        <h2>{t('results.topicBreakdown')}</h2>
         <div className={styles.topicList}>
           {Object.entries(topicStats).map(([topic, stats]) => (
             <div
@@ -141,12 +143,12 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({
             >
               <div className={styles.topicHeader}>
                 <h4>{topic}</h4>
-                {stats.accuracy < 50 && <Badge className={styles.weakBadge}>⚠ Weak</Badge>}
+                {stats.accuracy < 50 && <Badge className={styles.weakBadge}>⚠ {t('results.weak')}</Badge>}
               </div>
 
               <div className={styles.topicStats}>
                 <span>
-                  {stats.correct}/{stats.total} correct
+                  {t('results.correct', { correct: stats.correct, total: stats.total })}
                 </span>
                 <span className={styles.accuracy}>{stats.accuracy.toFixed(0)}%</span>
               </div>
@@ -173,14 +175,14 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({
       {/* Weak Areas */}
       {weekAreas.length > 0 && (
         <Card className={`${styles.section} ${styles.weakAreasSection}`}>
-          <h2>Areas for Improvement</h2>
+          <h2>{t('results.areasForImprovement')}</h2>
           <p className={styles.weakAreasText}>
-            Focus your studies on these topics where accuracy was below 50%:
+            {t('results.focusOnWeakTopics')}
           </p>
           <ul className={styles.weakAreasList}>
             {weekAreas.map(area => (
               <li key={area.topic}>
-                <strong>{area.topic}</strong> ({area.accuracy.toFixed(0)}% accuracy)
+                <strong>{area.topic}</strong> ({area.accuracy.toFixed(0)}% {t('results.accuracy')})
               </li>
             ))}
           </ul>
@@ -190,7 +192,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({
       {/* Answer Review */}
       {onReview && (
         <Card className={styles.section}>
-          <h2>Answer Review</h2>
+          <h2>{t('results.answerReview')}</h2>
           <div className={styles.answersList}>
             {results.answers.slice(0, 5).map((answer, idx) => (
               <div
@@ -200,21 +202,21 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({
                 }`}
               >
                 <div className={styles.answerQuestion}>
-                  <span className={styles.questionNum}>Q{idx + 1}.</span>
+                  <span className={styles.questionNum}>{t('results.questionNum', { num: idx + 1 })}</span>
                   <p>{answer.question_text}</p>
                 </div>
                 <div className={styles.answerStatus}>
                   {answer.is_correct ? (
-                    <Badge className={styles.correctBadge}>✓ Correct</Badge>
+                    <Badge className={styles.correctBadge}>{t('results.correct')}</Badge>
                   ) : (
-                    <Badge className={styles.incorrectBadge}>✗ Incorrect</Badge>
+                    <Badge className={styles.incorrectBadge}>{t('results.incorrect')}</Badge>
                   )}
                 </div>
               </div>
             ))}
             {results.answers.length > 5 && (
               <p className={styles.moreAnswers}>
-                +{results.answers.length - 5} more questions
+                {t('results.moreQuestions', { count: results.answers.length - 5 })}
               </p>
             )}
           </div>
@@ -225,7 +227,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({
       <div className={styles.actions}>
         {onRetake && (
           <Button onClick={onRetake} disabled={isLoading} className={styles.actionButton}>
-            {isLoading ? <Spinner size="sm" /> : 'Retake Exam'}
+            {isLoading ? <Spinner size="sm" /> : t('exams.retakeExam')}
           </Button>
         )}
 
@@ -236,7 +238,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({
             disabled={isLoading}
             className={styles.actionButton}
           >
-            {isLoading ? <Spinner size="sm" /> : 'Full Review'}
+            {isLoading ? <Spinner size="sm" /> : t('results.fullReview')}
           </Button>
         )}
 
@@ -247,7 +249,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({
             disabled={isLoading}
             className={styles.actionButton}
           >
-            {isLoading ? <Spinner size="sm" /> : 'Share Results'}
+            {isLoading ? <Spinner size="sm" /> : t('results.shareResults')}
           </Button>
         )}
       </div>

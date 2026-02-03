@@ -1,0 +1,25 @@
+
+> question-creator@1.0.0 build
+> next build
+
+⚠ `images.domains` is deprecated in favor of `images.remotePatterns`. Please update next.config.js to protect your application from malicious users.
+⚠ Invalid next.config.js options detected: 
+⚠     Unrecognized key(s) in object: 'swcMinify'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Running TypeScript ...
+Failed to compile.
+
+./src/services/llm/gemini-question-generator.ts:110:56
+Type error: Expected 1 arguments, but got 2.
+
+[0m [90m 108 |[39m
+ [90m 109 |[39m     [90m// Calculate costs (Gemini Batch API pricing)[39m
+[31m[1m>[22m[39m[90m 110 |[39m     [36mconst[39m tokensInput [33m=[39m estimateTokenCount(ragContext[33m,[39m input[33m.[39mtopic)[33m;[39m
+ [90m     |[39m                                                        [31m[1m^[22m[39m
+ [90m 111 |[39m     [36mconst[39m tokensOutput [33m=[39m estimateTokenCount(validatedQuestions)[33m;[39m
+ [90m 112 |[39m     [36mconst[39m costUsd [33m=[39m calculateGeminiCost(tokensInput[33m,[39m tokensOutput)[33m;[39m
+ [90m 113 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

@@ -1,5 +1,5 @@
 import { parse } from 'csv-parse/sync';
-import { BOM_CHARACTERS } from '@/src/services/import/constants';
+import { BOM_CHARACTERS } from '@/services/import/constants';
 
 export interface CSVRow {
   text: string;
@@ -49,7 +49,7 @@ export class CSVParser {
    * Detect file encoding (UTF-8 or ISO-8859-1)
    * Returns 'utf8' if file appears to be valid UTF-8, otherwise 'iso-8859-1'
    */
-  static detectEncoding(buffer: Buffer): string {
+  static detectEncoding(buffer: Buffer): BufferEncoding {
     try {
       // Try to decode as UTF-8
       const text = buffer.toString('utf8');
@@ -62,7 +62,7 @@ export class CSVParser {
       // Fall through to ISO-8859-1
     }
 
-    return 'iso-8859-1';
+    return 'latin1';
   }
 
   /**
@@ -276,3 +276,4 @@ export class CSVParser {
     };
   }
 }
+

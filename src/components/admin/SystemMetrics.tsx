@@ -64,7 +64,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
         label="Active Users (30d)"
         value={stats.users.active_users_30d}
         trend={parseFloat(activeUsersTrend)}
-        icon={Users}
+        icon={<Users size={24} />}
         color="blue"
       />
 
@@ -73,7 +73,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
         label="Total Questions"
         value={stats.questions.total_questions}
         trend={3.2}
-        icon={FileText}
+        icon={<FileText size={24} />}
         color="green"
       />
 
@@ -82,7 +82,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
         label="Completed Imports"
         value={stats.imports.total_completed_imports}
         trend={parseFloat(importsTrend)}
-        icon={Upload}
+        icon={<Upload size={24} />}
         color="purple"
       />
 
@@ -91,7 +91,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
         label="Database Health"
         value={stats.system_health.db_size_mb > 0 ? 98 : 0}
         trend={parseFloat(dbHealthTrend)}
-        icon={Database}
+        icon={<Database size={24} />}
         color={isDbHealthy ? 'orange' : 'red'}
       />
     </div>
@@ -99,3 +99,4 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({
 };
 
 export default SystemMetrics;
+

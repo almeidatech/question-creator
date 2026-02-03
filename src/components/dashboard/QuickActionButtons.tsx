@@ -51,3 +51,4 @@ export const QuickActionButtons: React.FC<QuickActionButtonsProps> = ({
     </div>
   );
 };
+

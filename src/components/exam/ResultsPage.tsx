@@ -254,3 +254,4 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({
     </div>
   );
 };
+

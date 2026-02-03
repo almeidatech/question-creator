@@ -1,8 +1,8 @@
-import { supabase } from '@/src/services/database/supabase-client';
-import { CSVParser, CSVRow } from '@/src/services/import/csv-parser';
-import { DeduplicationService } from '@/src/services/import/deduplication.service';
-import { SemanticMappingService } from '@/src/services/import/semantic-mapping.service';
-import { BatchProcessorService } from '@/src/services/import/batch-processor.service';
+import { getSupabaseClient } from '@/services/database/supabase-client';
+import { CSVParser, CSVRow } from '@/services/import/csv-parser';
+import { DeduplicationService } from '@/services/import/deduplication.service';
+import { SemanticMappingService } from '@/services/import/semantic-mapping.service';
+import { BatchProcessorService } from '@/services/import/batch-processor.service';
 
 export interface ImportJob {
   importId: string;
@@ -203,7 +203,7 @@ export class ImportOrchestrator {
     filename: string,
     userId: string
   ): Promise<string> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('question_imports')
       .insert([{
         admin_id: userId,
@@ -228,7 +228,7 @@ export class ImportOrchestrator {
     importId: string,
     updates: Record<string, any>
   ): Promise<void> {
-    const { error } = await supabase
+    const { error } = await getSupabaseClient()
       .from('question_imports')
       .update(updates)
       .eq('id', importId);
@@ -242,7 +242,7 @@ export class ImportOrchestrator {
    * Get existing questions for deduplication
    */
   private static async getExistingQuestions(): Promise<Array<{ id: string; text: string }>> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('questions')
       .select('id, text')
       .limit(10000) // Reasonable limit to avoid memory issues
@@ -276,7 +276,7 @@ export class ImportOrchestrator {
    * Get import status
    */
   static async getImportStatus(importId: string): Promise<any> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('question_imports')
       .select('*')
       .eq('id', importId)
@@ -293,7 +293,7 @@ export class ImportOrchestrator {
    * Get import history for a user
    */
   static async getImportHistory(userId: string, limit: number = 10): Promise<any[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('question_imports')
       .select('*')
       .eq('admin_id', userId)
@@ -308,3 +308,4 @@ export class ImportOrchestrator {
     return data || [];
   }
 }
+

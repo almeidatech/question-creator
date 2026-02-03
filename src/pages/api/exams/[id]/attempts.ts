@@ -4,9 +4,9 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSupabaseClient } from '@/src/services/database/supabase-client';
-import { startExamAttempt } from '@/src/services/exams';
-import { StartAttemptResponse } from '@/src/schemas/exam-attempt.schema';
+import { getSupabaseClient } from '@/services/database/supabase-client';
+import { startExamAttempt } from '@/services/exams';
+import { StartAttemptResponse } from '@/schemas/exam-attempt.schema';
 
 interface ErrorResponse {
   error: string;

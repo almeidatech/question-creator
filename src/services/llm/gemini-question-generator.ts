@@ -107,7 +107,7 @@ export async function generateQuestionsWithGemini(
     const validatedQuestions = validateGeminiResponse(response, input.count);
 
     // Calculate costs (Gemini Batch API pricing)
-    const tokensInput = estimateTokenCount(ragContext, input.topic);
+    const tokensInput = estimateTokenCount({ ragContext, topic: input.topic });
     const tokensOutput = estimateTokenCount(validatedQuestions);
     const costUsd = calculateGeminiCost(tokensInput, tokensOutput);
 
@@ -250,7 +250,7 @@ function validateGeminiResponse(
     );
   }
 
-  return validated;
+  return validated as unknown as GeneratedQuestion[];
 }
 
 /**
@@ -353,10 +353,11 @@ export const storeGeneratedQuestionSchema = z.object({
   topic_id: z.string().uuid(),
   created_by: z.string().uuid(),
   ai_model: z.literal('gemini-1.5-pro'),
-  generation_metadata: z.record(z.unknown()),
+  generation_metadata: z.record(z.string(), z.unknown()),
   // CRITICAL: Source fields
   source_type: z.literal(SourceType.AI_GENERATED),
   rag_eligible: z.literal(false),
 });
 
 export type StoreGeneratedQuestion = z.infer<typeof storeGeneratedQuestionSchema>;
+

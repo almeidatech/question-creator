@@ -24,8 +24,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     formState: { errors, isValid },
     watch,
   } = useForm<LoginFormData>({
-    resolver: zodResolver(LoginSchema),
+    resolver: zodResolver(LoginSchema) as any,
     mode: 'onChange',
+    defaultValues: {
+      email: '',
+      password: '',
+      rememberMe: false,
+    },
   });
 
   const rememberMe = watch('rememberMe');
@@ -79,7 +84,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           id="email"
           type="email"
           {...register('email')}
-          aria-invalid={errors.email ? 'true' : 'false'}
+          {...(errors.email ? { 'aria-invalid': true } : {})}
           aria-describedby={errors.email ? 'email-error' : undefined}
           className={`w-full px-3 py-2 rounded-md border transition-colors ${
             errors.email
@@ -109,7 +114,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             id="password"
             type={showPassword ? 'text' : 'password'}
             {...register('password')}
-            aria-invalid={errors.password ? 'true' : 'false'}
+            {...(errors.password ? { 'aria-invalid': true } : {})}
             aria-describedby={errors.password ? 'password-error' : undefined}
             className={`w-full px-3 py-2 rounded-md border transition-colors pr-10 ${
               errors.password
@@ -171,3 +176,4 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
     </form>
   );
 };
+

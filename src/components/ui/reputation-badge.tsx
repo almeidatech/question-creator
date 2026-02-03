@@ -115,3 +115,4 @@ export const ReputationBadge = forwardRef<HTMLDivElement, ReputationBadgeProps>(
 );
 
 ReputationBadge.displayName = 'ReputationBadge';
+

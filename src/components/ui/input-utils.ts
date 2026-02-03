@@ -105,3 +105,4 @@ export const KeyboardEvents = {
   /** Check if key is Tab */
   isTab: (key: string): boolean => key === 'Tab',
 } as const;
+

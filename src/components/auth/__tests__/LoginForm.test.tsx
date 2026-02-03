@@ -88,3 +88,4 @@ describe('LoginForm', () => {
     expect(signupLink).toHaveAttribute('href', '/auth/signup');
   });
 });
+

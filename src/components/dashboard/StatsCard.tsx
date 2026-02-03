@@ -9,7 +9,7 @@ interface StatsCardProps {
   value: number | string;
   trend?: number;
   icon?: React.ReactNode;
-  color?: 'blue' | 'green' | 'purple' | 'orange';
+  color?: 'blue' | 'green' | 'purple' | 'orange' | 'red';
 }
 
 export const StatsCard: React.FC<StatsCardProps> = ({
@@ -26,6 +26,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
     green: darkMode ? 'bg-green-900 text-green-100' : 'bg-green-50 text-green-900',
     purple: darkMode ? 'bg-purple-900 text-purple-100' : 'bg-purple-50 text-purple-900',
     orange: darkMode ? 'bg-orange-900 text-orange-100' : 'bg-orange-50 text-orange-900',
+    red: darkMode ? 'bg-red-900 text-red-100' : 'bg-red-50 text-red-900',
   };
 
   const trendColor =
@@ -59,3 +60,4 @@ export const StatsCard: React.FC<StatsCardProps> = ({
     </div>
   );
 };
+

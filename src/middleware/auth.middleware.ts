@@ -4,8 +4,8 @@
  */
 
 import { NextApiRequest } from 'next';
-import { AuthService } from '@/src/services/auth/auth.service';
-import { RateLimitService } from '@/src/services/auth/rate-limit.service';
+import { AuthService } from '@/services/auth/auth.service';
+import { RateLimitService } from '@/services/auth/rate-limit.service';
 
 /**
  * Extract authorization header and get token
@@ -87,3 +87,4 @@ export function getRateLimitHeaders(identifier: string): Record<string, string> 
     'X-RateLimit-Reset': Math.ceil(status.resetTime / 1000).toString(),
   };
 }
+

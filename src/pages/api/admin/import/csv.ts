@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { verifyAuth } from '@/src/middleware/auth.middleware';
-import { ImportOrchestrator } from '@/src/services/import/import-orchestrator.service';
+import { verifyAuth } from '@/middleware/auth.middleware';
+import { ImportOrchestrator } from '@/services/import/import-orchestrator.service';
 
 /**
  * POST /api/admin/import/csv
@@ -42,7 +42,7 @@ export default async function handler(
     // For now, we'll assume the user is authenticated
 
     // Parse form data
-    const { files } = req;
+    const { files } = req as any;
     if (!files || !files.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
@@ -83,3 +83,4 @@ export default async function handler(
     });
   }
 }
+

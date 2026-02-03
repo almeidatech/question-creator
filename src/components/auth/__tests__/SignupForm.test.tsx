@@ -117,3 +117,4 @@ describe('SignupForm', () => {
     expect(loginLink).toHaveAttribute('href', '/auth/login');
   });
 });
+

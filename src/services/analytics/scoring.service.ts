@@ -1,4 +1,4 @@
-import { supabase } from '@/src/services/database/supabase-client';
+import { getSupabaseClient } from '@/services/database/supabase-client';
 
 export interface ExamScore {
   score: number;
@@ -51,7 +51,7 @@ export class ScoringService {
     attemptId: string,
     examId: string
   ): Promise<ExamScore> {
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await getSupabaseClient().rpc(
       'calculate_exam_score',
       {
         p_attempt_id: attemptId,
@@ -83,7 +83,7 @@ export class ScoringService {
     examId: string,
     userId: string
   ): Promise<ExamAnalytics> {
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await getSupabaseClient().rpc(
       'get_exam_analytics',
       {
         p_exam_id: examId,
@@ -120,7 +120,7 @@ export class ScoringService {
     examId: string,
     userId: string
   ): Promise<WeakArea[]> {
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await getSupabaseClient().rpc(
       'get_frequent_weak_areas',
       {
         p_exam_id: examId,
@@ -145,7 +145,7 @@ export class ScoringService {
    * Get overall student performance analytics
    */
   static async getStudentAnalytics(userId: string): Promise<StudentAnalytics> {
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await getSupabaseClient().rpc(
       'get_student_analytics',
       {
         p_user_id: userId,
@@ -179,7 +179,7 @@ export class ScoringService {
    * Get time analysis for a specific attempt
    */
   static async getTimeAnalysis(attemptId: string): Promise<TimeAnalysis> {
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await getSupabaseClient().rpc(
       'get_time_analysis',
       {
         p_attempt_id: attemptId,
@@ -208,7 +208,7 @@ export class ScoringService {
    * Get weak areas for a specific attempt
    */
   static async getAttemptWeakAreas(attemptId: string): Promise<WeakArea[]> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('exam_results')
       .select('weak_areas')
       .eq('attempt_id', attemptId)
@@ -235,7 +235,7 @@ export class ScoringService {
     expectedTotalQuestions: number
   ): Promise<{ score: number; isAccurate: boolean }> {
     // Get actual correct answers from database
-    const { data: answerData, error: answerError } = await supabase
+    const { data: answerData, error: answerError } = await getSupabaseClient()
       .from('exam_answers')
       .select('is_correct')
       .eq('attempt_id', attemptId);
@@ -258,3 +258,4 @@ export class ScoringService {
     };
   }
 }
+

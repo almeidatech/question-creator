@@ -33,3 +33,4 @@ export type DisplayVariant = 'default' | 'elevated' | 'outlined';
  * Orientation variants
  */
 export type OrientationVariant = 'horizontal' | 'vertical';
+

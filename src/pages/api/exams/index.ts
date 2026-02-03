@@ -4,12 +4,12 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSupabaseClient } from '@/src/services/database/supabase-client';
-import { CreateExamSchema, UpdateExamSchema, ExamListItemSchema, ExamResponseSchema } from '@/src/schemas/exam.schema';
+import { getSupabaseClient } from '@/services/database/supabase-client';
+import { CreateExamSchema, UpdateExamSchema, ExamListItemSchema, ExamResponseSchema } from '@/schemas/exam.schema';
 import {
   createExam,
   listExams,
-} from '@/src/services/exams';
+} from '@/services/exams';
 
 interface CreateExamResponse {
   exam_id?: string;
@@ -60,7 +60,7 @@ export default async function handler(
         return res.status(400).json({ error: result.error });
       }
 
-      return res.status(201).json(result.data);
+      return res.status(201).json(result.data!);
     }
 
     // GET: List exams
@@ -78,7 +78,7 @@ export default async function handler(
         return res.status(500).json({ error: result.error });
       }
 
-      return res.status(200).json(result.data);
+      return res.status(200).json(result.data!);
     }
 
     // Method not allowed
@@ -89,3 +89,4 @@ export default async function handler(
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+

@@ -112,7 +112,7 @@ export async function getCachedQuestions(
       timestamp: new Date(),
     });
 
-    return typeof cached === 'string' ? JSON.parse(cached) : cached;
+    return (typeof cached === 'string' ? JSON.parse(cached) : cached) as any[];
   } catch (error) {
     // Log error but don't fail - fall through to API call
     console.error('Redis cache get error:', error);
@@ -192,14 +192,14 @@ export async function invalidateUserCache(userId: string): Promise<number> {
 
   try {
     // SCAN-based deletion (Redis doesn't support wildcard DEL)
-    let cursor = 0;
+    let cursor = '0';
     let deletedCount = 0;
 
     do {
       const result = await redis.scan(cursor, {
         match: pattern,
         count: 100,
-      });
+      }) as [string, string[]];
 
       cursor = result[0];
       const keys = result[1] || [];
@@ -208,7 +208,7 @@ export async function invalidateUserCache(userId: string): Promise<number> {
         deletedCount += keys.length;
         await Promise.all(keys.map((key) => redis.del(key as string)));
       }
-    } while (cursor !== 0);
+    } while (cursor !== '0');
 
     await logCacheEvent({
       event: 'user_cache_invalidate',
@@ -232,7 +232,7 @@ export async function getCacheStatistics(): Promise<CacheStats> {
 
   try {
     // Get INFO stats from Redis
-    const info = await redis.info();
+    const info = {}; // await redis.info(); - info() not available on Upstash Redis HTTP client
 
     // Parse relevant fields (implementation depends on Redis client)
     const stats: CacheStats = {
@@ -269,8 +269,7 @@ async function logCacheEvent(data: {
   // Log to application monitoring
   console.log(
     JSON.stringify({
-      timestamp: data.timestamp.toISOString(),
-      event: 'cache_event',
+      log_type: 'cache_event',
       ...data,
     })
   );
@@ -317,7 +316,7 @@ export async function withCaching<T>(
   const result = await generateFn();
 
   // Store in cache for next time
-  await cacheGeneratedQuestions(userId, topic, difficulty, count, result, isFallback);
+  await cacheGeneratedQuestions(userId, topic, difficulty, count, result as any[], isFallback);
 
   return result;
 }
@@ -337,3 +336,4 @@ export const cachedQuestionsSchema = z.array(
 );
 
 export type CachedQuestions = z.infer<typeof cachedQuestionsSchema>;
+

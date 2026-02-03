@@ -3,7 +3,7 @@
  * Handles CRUD operations, validation, and business logic for exams
  */
 
-import { getSupabaseServiceClient, hashUuidToLockId, withAdvisoryLock } from '@/src/services/database/supabase-client';
+import { getSupabaseServiceClient, hashUuidToLockId, withAdvisoryLock } from '@/services/database/supabase-client';
 import {
   CreateExamInput,
   UpdateExamInput,
@@ -11,7 +11,7 @@ import {
   ExamWithQuestions,
   ExamListItem,
   ExamResponse,
-} from '@/src/schemas/exam.schema';
+} from '@/schemas/exam.schema';
 
 interface ExamQueryFilters {
   status?: ExamStatus;
@@ -83,7 +83,7 @@ export async function createExam(
     // Use advisory lock to prevent race conditions
     const lockId = hashUuidToLockId(userId);
 
-    return await withAdvisoryLock(lockId, async () => {
+    const result = await withAdvisoryLock(lockId, async () => {
       // Create exam
       const { data: examData, error: examError } = await client
         .from('exams')
@@ -142,6 +142,15 @@ export async function createExam(
         },
       };
     });
+
+    if (!result) {
+      return {
+        success: false,
+        error: 'System busy, please try again',
+      };
+    }
+
+    return result;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('Error in createExam:', message);
@@ -360,7 +369,7 @@ export async function getExamDetails(
     }));
 
     // TODO: Get attempt history when exam_attempts table is created
-    const attempts = [];
+    const attempts: any[] = [];
 
     return {
       success: true,
@@ -456,7 +465,7 @@ export async function updateExam(
 
       // Use advisory lock
       const lockId = hashUuidToLockId(examId);
-      return await withAdvisoryLock(lockId, async () => {
+      const result = await withAdvisoryLock(lockId, async () => {
         // Delete old exam_questions
         const { error: deleteError } = await client
           .from('exam_questions')
@@ -532,6 +541,16 @@ export async function updateExam(
           },
         };
       });
+
+      if (!result) {
+        return {
+          success: false,
+          error: 'System busy, please try again',
+          statusCode: 503,
+        };
+      }
+
+      return result;
     }
 
     // Update exam metadata only (no question changes)
@@ -583,3 +602,4 @@ export async function updateExam(
     };
   }
 }
+

@@ -6,7 +6,7 @@
  * Specification: US-3.2 Admin Dashboard & Review Queue
  */
 
-import { getSupabaseServiceClient } from '@/src/services/database/supabase-client';
+import { getSupabaseServiceClient } from '@/services/database/supabase-client';
 import { getSystemHealth, SystemHealthMetrics } from './metrics.service';
 
 export interface UserStats {
@@ -275,3 +275,4 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     cached_at: new Date().toISOString(),
   };
 }
+

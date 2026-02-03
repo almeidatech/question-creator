@@ -32,3 +32,4 @@ describe('Sidebar', () => {
     expect(closeButton).toBeInTheDocument();
   });
 });
+

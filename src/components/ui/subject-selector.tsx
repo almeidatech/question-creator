@@ -18,7 +18,7 @@ export interface Subject {
 /**
  * SubjectSelector Component Props
  */
-export interface SubjectSelectorProps extends HTMLAttributes<HTMLDivElement> {
+export interface SubjectSelectorProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
   /** Label for the form field */
   label?: string;
   /** Whether the field is required */
@@ -203,3 +203,4 @@ export const SubjectSelector = forwardRef<HTMLDivElement, SubjectSelectorProps>(
 );
 
 SubjectSelector.displayName = 'SubjectSelector';
+

@@ -1,0 +1,26 @@
+
+> question-creator@1.0.0 build
+> next build
+
+⚠ `images.domains` is deprecated in favor of `images.remotePatterns`. Please update next.config.js to protect your application from malicious users.
+⚠ Invalid next.config.js options detected: 
+⚠     Unrecognized key(s) in object: 'swcMinify'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Running TypeScript ...
+Failed to compile.
+
+./src/services/exams/exam-attempt.service.ts:80:5
+Type error: Type '{ success: false; error: string; statusCode: number; data?: undefined; } | { success: true; data: { attempt_id: any; exam_id: string; status: "in_progress"; duration_minutes: any; questions_count: number; started_at: any; }; error?: undefined; statusCode?: undefined; } | null' is not assignable to type '{ success: boolean; data?: { attempt_id: string; exam_id: string; status: "completed" | "in_progress"; duration_minutes: number; questions_count: number; started_at: string; } | undefined; error?: string | undefined; statusCode?: number | undefined; }'.
+  Type 'null' is not assignable to type '{ success: boolean; data?: { attempt_id: string; exam_id: string; status: "completed" | "in_progress"; duration_minutes: number; questions_count: number; started_at: string; } | undefined; error?: string | undefined; statusCode?: number | undefined; }'.
+
+[0m [90m 78 |[39m     [36mconst[39m lockId [33m=[39m hashUuidToLockId(examId)[33m;[39m
+ [90m 79 |[39m
+[31m[1m>[22m[39m[90m 80 |[39m     [36mreturn[39m [36mawait[39m withAdvisoryLock(lockId[33m,[39m [36masync[39m () [33m=>[39m {
+ [90m    |[39m     [31m[1m^[22m[39m
+ [90m 81 |[39m       [90m// Create attempt record[39m
+ [90m 82 |[39m       [36mconst[39m { data[33m:[39m attemptData[33m,[39m error[33m:[39m attemptError } [33m=[39m [36mawait[39m client
+ [90m 83 |[39m         [33m.[39m[36mfrom[39m([32m'exam_attempts'[39m)[0m
+Next.js build worker exited with code: 1 and signal: null

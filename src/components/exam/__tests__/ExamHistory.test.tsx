@@ -267,3 +267,4 @@ describe('ExamHistory', () => {
     expect(screen.getByText(/feb/i)).toBeInTheDocument();
   });
 });
+

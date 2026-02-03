@@ -8,18 +8,18 @@
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
-import { verifyAuth } from '@/src/middleware/auth.middleware';
-import { verifyAdminAccess } from '@/src/services/admin/review.service';
+import { verifyAuth } from '@/middleware/auth.middleware';
+import { verifyAdminAccess } from '@/services/admin/review.service';
 import {
   getDashboardStats,
   DashboardStats,
-} from '@/src/services/admin/dashboard.service';
+} from '@/services/admin/dashboard.service';
 import {
   getCachedStats,
   setCachedStats,
   invalidateCache,
   getCacheMetadata,
-} from '@/src/services/admin/cache.service';
+} from '@/services/admin/cache.service';
 
 interface DashboardResponse {
   stats: DashboardStats;
@@ -120,3 +120,4 @@ export default async function handler(
     });
   }
 }
+

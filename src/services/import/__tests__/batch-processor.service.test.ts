@@ -4,7 +4,7 @@ import { CSVRow } from '../csv-parser';
 import { BATCH_SIZE, MAX_RETRIES } from '../constants';
 
 // Mock Supabase
-vi.mock('@/src/services/database/supabase-client', () => ({
+vi.mock('@/services/database/supabase-client', () => ({
   supabase: {
     from: vi.fn(),
     rpc: vi.fn(),
@@ -579,3 +579,4 @@ describe('BatchProcessorService', () => {
     });
   });
 });
+

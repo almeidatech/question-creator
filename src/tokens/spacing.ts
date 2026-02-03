@@ -155,3 +155,4 @@ export const semanticSpacing = {
 export type SpacingValue = keyof typeof spacing;
 export type BorderRadiusValue = keyof typeof semanticSpacing.borderRadius;
 export type IconSizeValue = keyof typeof semanticSpacing.iconSize;
+

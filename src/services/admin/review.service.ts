@@ -125,7 +125,7 @@ export async function getFlaggedQuestions(
     const feedback = q.question_feedback || [];
 
     // Get unique feedback types
-    const feedbackTypes = [...new Set(feedback.map((f: any) => f.category))];
+    const feedbackTypes = [...new Set(feedback.map((f: any) => f.category))] as string[];
 
     // Get latest report date
     const lastReported = feedback.length > 0
@@ -247,3 +247,4 @@ export async function processReviewDecision(
     return null;
   }
 }
+

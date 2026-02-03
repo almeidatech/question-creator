@@ -1,6 +1,6 @@
-import { supabase } from '@/src/services/database/supabase-client';
-import { SEMANTIC_MAPPING_TIMEOUT } from '@/src/services/import/constants';
-import { CSVRow } from '@/src/services/import/csv-parser';
+import { getSupabaseClient } from '@/services/database/supabase-client';
+import { SEMANTIC_MAPPING_TIMEOUT } from '@/services/import/constants';
+import { CSVRow } from '@/services/import/csv-parser';
 
 export interface TopicMapping {
   csvTopicName: string;
@@ -28,7 +28,7 @@ export class SemanticMappingService {
    * Get all existing topics from database
    */
   static async getExistingTopics(): Promise<Array<{ id: string; name: string }>> {
-    const { data, error } = await supabase
+    const { data, error } = await getSupabaseClient()
       .from('question_topics')
       .select('id, name')
       .eq('deleted_at', null);
@@ -177,7 +177,7 @@ export class SemanticMappingService {
    */
   static async createTopicIfMissing(topicName: string): Promise<string> {
     // Check if topic already exists
-    const { data: existing } = await supabase
+    const { data: existing } = await getSupabaseClient()
       .from('question_topics')
       .select('id')
       .eq('name', topicName)
@@ -189,7 +189,7 @@ export class SemanticMappingService {
     }
 
     // Create new topic
-    const { data: newTopic, error } = await supabase
+    const { data: newTopic, error } = await getSupabaseClient()
       .from('question_topics')
       .insert([{ name: topicName, description: `Auto-created from CSV import` }])
       .select('id')
@@ -223,3 +223,4 @@ export class SemanticMappingService {
     });
   }
 }
+

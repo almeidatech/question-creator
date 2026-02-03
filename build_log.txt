@@ -1,0 +1,29 @@
+
+> question-creator@1.0.0 build
+> next build
+
+⚠ `images.domains` is deprecated in favor of `images.remotePatterns`. Please update next.config.js to protect your application from malicious users.
+⚠ Invalid next.config.js options detected: 
+⚠     Unrecognized key(s) in object: 'swcMinify'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Running TypeScript ...
+Failed to compile.
+
+./src/components/auth/LoginForm.tsx:27:5
+Type error: Type 'Resolver<{ email: string; password: string; rememberMe?: boolean | undefined; }, any, { email: string; password: string; rememberMe: boolean; }>' is not assignable to type 'Resolver<{ email: string; password: string; rememberMe: boolean; }, any, { email: string; password: string; rememberMe: boolean; }>'.
+  Types of parameters 'options' and 'options' are incompatible.
+    Type 'ResolverOptions<{ email: string; password: string; rememberMe: boolean; }>' is not assignable to type 'ResolverOptions<{ email: string; password: string; rememberMe?: boolean | undefined; }>'.
+      Type 'boolean | undefined' is not assignable to type 'boolean'.
+        Type 'undefined' is not assignable to type 'boolean'.
+
+[0m [90m 25 |[39m     watch[33m,[39m
+ [90m 26 |[39m   } [33m=[39m useForm[33m<[39m[33mLoginFormData[39m[33m>[39m({
+[31m[1m>[22m[39m[90m 27 |[39m     resolver[33m:[39m zodResolver([33mLoginSchema[39m)[33m,[39m
+ [90m    |[39m     [31m[1m^[22m[39m
+ [90m 28 |[39m     mode[33m:[39m [32m'onChange'[39m[33m,[39m
+ [90m 29 |[39m   })[33m;[39m
+ [90m 30 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

@@ -39,3 +39,4 @@ describe('Footer', () => {
     expect(screen.getByText(/Question Creator/i)).toBeInTheDocument();
   });
 });
+

@@ -7,7 +7,7 @@ import { debounce, KeyboardEvents, isEmpty } from './input-utils';
  * Props for SearchInput component
  */
 export interface SearchInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   /** Current search value */
   value?: string;
   /** Placeholder text for empty state */
@@ -213,3 +213,4 @@ export const SearchInput = forwardRef<HTMLDivElement, SearchInputProps>(
 );
 
 SearchInput.displayName = 'SearchInput';
+

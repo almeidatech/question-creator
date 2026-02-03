@@ -257,3 +257,4 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
     </form>
   );
 };
+

@@ -137,3 +137,4 @@ describe('PasswordRecoveryForm', () => {
     expect(loginLink).toHaveAttribute('href', '/auth/login');
   });
 });
+

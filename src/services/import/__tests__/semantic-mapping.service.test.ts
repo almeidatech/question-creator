@@ -3,7 +3,7 @@ import { SemanticMappingService, TopicMapping, SemanticMappingResult } from '../
 import { CSVRow } from '../csv-parser';
 
 // Mock the supabase client
-vi.mock('@/src/services/database/supabase-client', () => ({
+vi.mock('@/services/database/supabase-client', () => ({
   supabase: {
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({
@@ -42,7 +42,7 @@ describe('SemanticMappingService', () => {
   describe('Topic Mapping', () => {
     it('should map topics with exact match', async () => {
       // Mock exact match
-      vi.mocked(require('@/src/services/database/supabase-client').supabase)
+      vi.mocked(require('@/services/database/supabase-client').supabase)
         .from('question_topics')
         .select('id, name')
         .eq('deleted_at', null);
@@ -534,3 +534,4 @@ describe('SemanticMappingService', () => {
     });
   });
 });
+

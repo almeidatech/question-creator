@@ -1,0 +1,29 @@
+
+> question-creator@1.0.0 build
+> next build
+
+⚠ `images.domains` is deprecated in favor of `images.remotePatterns`. Please update next.config.js to protect your application from malicious users.
+⚠ Invalid next.config.js options detected: 
+⚠     Unrecognized key(s) in object: 'swcMinify'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Running TypeScript ...
+Failed to compile.
+
+./src/services/admin/review.service.ts:123:9
+Type error: Type '{ question_id: any; question_text: any; report_count: any; feedback: unknown[]; last_reported: string; status: any; reputation_score: any; }[]' is not assignable to type 'ReviewQueueItem[]'.
+  Type '{ question_id: any; question_text: any; report_count: any; feedback: unknown[]; last_reported: string; status: any; reputation_score: any; }' is not assignable to type 'ReviewQueueItem'.
+    Types of property 'feedback' are incompatible.
+      Type 'unknown[]' is not assignable to type 'string[]'.
+        Type 'unknown' is not assignable to type 'string'.
+
+[0m [90m 121 |[39m
+ [90m 122 |[39m   [90m// Transform data to ReviewQueueItem format[39m
+[31m[1m>[22m[39m[90m 123 |[39m   [36mconst[39m items[33m:[39m [33mReviewQueueItem[39m[] [33m=[39m data[33m.[39mmap((q[33m:[39m any) [33m=>[39m {
+ [90m     |[39m         [31m[1m^[22m[39m
+ [90m 124 |[39m     [36mconst[39m reputation [33m=[39m q[33m.[39mquestion_reputation[33m?[39m[33m.[39m[[35m0[39m][33m;[39m
+ [90m 125 |[39m     [36mconst[39m feedback [33m=[39m q[33m.[39mquestion_feedback [33m||[39m [][33m;[39m
+ [90m 126 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

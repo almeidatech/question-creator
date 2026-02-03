@@ -91,3 +91,4 @@ export const ActivityChart: React.FC<ActivityChartProps> = ({ data, type = 'line
     </div>
   );
 };
+

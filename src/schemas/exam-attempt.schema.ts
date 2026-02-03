@@ -145,3 +145,4 @@ export const ExamResultRecordSchema = z.object({
 });
 
 export type ExamResultRecord = z.infer<typeof ExamResultRecordSchema>;
+

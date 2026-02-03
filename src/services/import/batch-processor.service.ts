@@ -1,6 +1,6 @@
-import { supabase } from '@/src/services/database/supabase-client';
-import { BATCH_SIZE, MAX_RETRIES, RETRY_DELAY } from '@/src/services/import/constants';
-import { CSVRow } from '@/src/services/import/csv-parser';
+import { getSupabaseClient } from '@/services/database/supabase-client';
+import { BATCH_SIZE, MAX_RETRIES, RETRY_DELAY } from '@/services/import/constants';
+import { CSVRow } from '@/services/import/csv-parser';
 
 export interface ImportProgress {
   importId: string;
@@ -133,7 +133,7 @@ export class BatchProcessorService {
 
       try {
         // Insert question
-        const { data: question, error } = await supabase
+        const { data: question, error } = await getSupabaseClient()
           .from('questions')
           .insert([{
             text: row.text,
@@ -152,7 +152,7 @@ export class BatchProcessorService {
         }
 
         // Track mapping
-        await supabase
+        await getSupabaseClient()
           .from('import_question_mapping')
           .insert([{
             import_id: importId,
@@ -198,7 +198,7 @@ export class BatchProcessorService {
         await new Promise(resolve => setTimeout(resolve, delay));
 
         try {
-          const { data: question, error } = await supabase
+          const { data: question, error } = await getSupabaseClient()
             .from('questions')
             .insert([{
               text: csvRow.text,
@@ -216,7 +216,7 @@ export class BatchProcessorService {
             throw error || new Error('Failed to create question');
           }
 
-          await supabase
+          await getSupabaseClient()
             .from('import_question_mapping')
             .insert([{
               import_id: importId,
@@ -247,7 +247,7 @@ export class BatchProcessorService {
     status: string,
     updates?: Record<string, any>
   ): Promise<void> {
-    const { error } = await supabase
+    const { error } = await getSupabaseClient()
       .from('question_imports')
       .update({
         status,
@@ -292,7 +292,7 @@ export class BatchProcessorService {
    * Get current import progress
    */
   static async getProgress(importId: string): Promise<ImportProgress> {
-    const { data: importData, error } = await supabase
+    const { data: importData, error } = await getSupabaseClient()
       .from('question_imports')
       .select(
         'id, total_rows, successful_imports, duplicate_count, error_count, status'
@@ -318,10 +318,10 @@ export class BatchProcessorService {
   /**
    * Cancel/rollback an import
    */
-  static async rollbackImport(importId: string): Promise<{ success: boolean; message: string }> {
+  static async rollbackImport(importId: string): Promise<{ success: boolean; message: string; deletedCount: number }> {
     try {
       // Call database function to rollback
-      const { data, error } = await supabase.rpc(
+      const { data, error } = await getSupabaseClient().rpc(
         'rollback_import',
         { p_import_id: importId }
       );
@@ -333,6 +333,7 @@ export class BatchProcessorService {
       return {
         success: data?.[0]?.success || false,
         message: data?.[0]?.message || 'Rollback completed',
+        deletedCount: data?.[0]?.deleted_count || 0,
       };
     } catch (error) {
       console.error('Rollback failed:', error);
@@ -340,3 +341,4 @@ export class BatchProcessorService {
     }
   }
 }
+

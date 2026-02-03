@@ -4,11 +4,11 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { AuthService } from '@/src/services/auth/auth.service';
-import { JWTService } from '@/src/services/auth/jwt.service';
-import { PasswordService } from '@/src/services/auth/password.service';
-import { RateLimitService } from '@/src/services/auth/rate-limit.service';
-import { validateAuthToken, checkRateLimit } from '@/src/middleware/auth.middleware';
+import { AuthService } from '@/services/auth/auth.service';
+import { JWTService } from '@/services/auth/jwt.service';
+import { PasswordService } from '@/services/auth/password.service';
+import { RateLimitService } from '@/services/auth/rate-limit.service';
+import { validateAuthToken, checkRateLimit } from '@/middleware/auth.middleware';
 
 describe('Auth Service', () => {
   beforeEach(() => {
@@ -378,3 +378,4 @@ describe('Auth Service', () => {
     });
   });
 });
+

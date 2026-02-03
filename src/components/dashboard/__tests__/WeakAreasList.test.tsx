@@ -60,3 +60,4 @@ describe('WeakAreasList', () => {
     expect(screen.getByText('Advanced Math')).toBeInTheDocument();
   });
 });
+

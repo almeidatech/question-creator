@@ -289,3 +289,4 @@ describe('ExamBuilder', () => {
     expect(screen.getByRole('button', { name: /save exam/i })).toBeDisabled();
   });
 });
+

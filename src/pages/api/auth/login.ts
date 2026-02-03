@@ -4,8 +4,8 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { AuthService } from '@/src/services/auth/auth.service';
-import { checkRateLimit, getRateLimitHeaders } from '@/src/middleware/auth.middleware';
+import { AuthService } from '@/services/auth/auth.service';
+import { checkRateLimit, getRateLimitHeaders } from '@/middleware/auth.middleware';
 
 interface LoginResponse {
   user_id?: string;
@@ -67,3 +67,4 @@ export default async function handler(
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
+

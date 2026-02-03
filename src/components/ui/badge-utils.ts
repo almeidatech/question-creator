@@ -148,3 +148,4 @@ export function getDifficultyAriaLabel(difficulty: DifficultyLevel): string {
 export function getBaseBadgeClasses(): string {
   return 'inline-flex items-center justify-center gap-2 font-semibold rounded-full whitespace-nowrap transition-colors duration-200';
 }
+

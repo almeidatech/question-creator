@@ -41,3 +41,4 @@ export interface SignupError {
 }
 
 export type TokenType = 'access' | 'refresh';
+

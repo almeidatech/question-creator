@@ -1,0 +1,25 @@
+
+> question-creator@1.0.0 build
+> next build
+
+⚠ `images.domains` is deprecated in favor of `images.remotePatterns`. Please update next.config.js to protect your application from malicious users.
+⚠ Invalid next.config.js options detected: 
+⚠     Unrecognized key(s) in object: 'swcMinify'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Running TypeScript ...
+Failed to compile.
+
+./src/services/cache/redis-cache-service.ts:115:62
+Type error: Type '{}' is missing the following properties from type 'any[]': length, pop, push, concat, and 28 more.
+
+[0m [90m 113 |[39m     })[33m;[39m
+ [90m 114 |[39m
+[31m[1m>[22m[39m[90m 115 |[39m     [36mreturn[39m [36mtypeof[39m cached [33m===[39m [32m'string'[39m [33m?[39m [33mJSON[39m[33m.[39mparse(cached) [33m:[39m cached[33m;[39m
+ [90m     |[39m                                                              [31m[1m^[22m[39m
+ [90m 116 |[39m   } [36mcatch[39m (error) {
+ [90m 117 |[39m     [90m// Log error but don't fail - fall through to API call[39m
+ [90m 118 |[39m     console[33m.[39merror([32m'Redis cache get error:'[39m[33m,[39m error)[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: null

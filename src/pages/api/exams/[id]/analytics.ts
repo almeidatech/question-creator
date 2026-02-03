@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { verifyAuth } from '@/src/middleware/auth.middleware';
-import { ScoringService } from '@/src/services/analytics/scoring.service';
+import { verifyAuth } from '@/middleware/auth.middleware';
+import { ScoringService } from '@/services/analytics/scoring.service';
 
 /**
  * GET /api/exams/[id]/analytics

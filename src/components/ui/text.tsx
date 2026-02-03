@@ -112,3 +112,4 @@ export const Caption = forwardRef<HTMLElement, TextProps>(
   (props, ref) => <Text ref={ref} as="small" variant="caption" {...props} />
 );
 Caption.displayName = 'Caption';
+

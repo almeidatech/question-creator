@@ -221,3 +221,4 @@ describe('ResultsPage', () => {
     expect(screen.getByText(/\+15 more questions/i)).toBeInTheDocument();
   });
 });
+

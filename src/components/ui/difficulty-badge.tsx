@@ -107,3 +107,4 @@ export const DifficultyBadge = forwardRef<HTMLDivElement, DifficultyBadgeProps>(
 );
 
 DifficultyBadge.displayName = 'DifficultyBadge';
+

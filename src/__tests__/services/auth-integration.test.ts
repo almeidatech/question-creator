@@ -4,10 +4,10 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { AuthService } from '@/src/services/auth/auth.service';
-import { JWTService } from '@/src/services/auth/jwt.service';
-import { RateLimitService } from '@/src/services/auth/rate-limit.service';
-import { validateAuthToken, getRateLimitHeaders } from '@/src/middleware/auth.middleware';
+import { AuthService } from '@/services/auth/auth.service';
+import { JWTService } from '@/services/auth/jwt.service';
+import { RateLimitService } from '@/services/auth/rate-limit.service';
+import { validateAuthToken, getRateLimitHeaders } from '@/middleware/auth.middleware';
 
 describe('Auth Integration', () => {
   beforeEach(() => {
@@ -297,3 +297,4 @@ describe('Auth Integration', () => {
     });
   });
 });
+

@@ -1,0 +1,26 @@
+
+> question-creator@1.0.0 build
+> next build
+
+⚠ `images.domains` is deprecated in favor of `images.remotePatterns`. Please update next.config.js to protect your application from malicious users.
+⚠ Invalid next.config.js options detected: 
+⚠     Unrecognized key(s) in object: 'swcMinify'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Running TypeScript ...
+Failed to compile.
+
+./src/components/exam/ExamBuilder.tsx:156:15
+Type error: Type '{ id: string; value: string; onChange: (e: ChangeEvent<HTMLInputElement, HTMLInputElement>) => void; placeholder: string; as: string; }' is not assignable to type 'IntrinsicAttributes & InputProps & RefAttributes<HTMLInputElement>'.
+  Property 'as' does not exist on type 'IntrinsicAttributes & InputProps & RefAttributes<HTMLInputElement>'.
+
+[0m [90m 154 |[39m               onChange[33m=[39m{(e) [33m=>[39m setFormData({ [33m...[39mformData[33m,[39m description[33m:[39m e[33m.[39mtarget[33m.[39mvalue })}
+ [90m 155 |[39m               placeholder[33m=[39m[32m"Optional exam description"[39m
+[31m[1m>[22m[39m[90m 156 |[39m               [36mas[39m[33m=[39m[32m"textarea"[39m
+ [90m     |[39m               [31m[1m^[22m[39m
+ [90m 157 |[39m             [33m/[39m[33m>[39m
+ [90m 158 |[39m           [33m<[39m[33m/[39m[33mdiv[39m[33m>[39m
+ [90m 159 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

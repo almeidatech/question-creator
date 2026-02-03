@@ -4,12 +4,12 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getSupabaseClient } from '@/src/services/database/supabase-client';
-import { UpdateExamSchema } from '@/src/schemas/exam.schema';
+import { getSupabaseClient } from '@/services/database/supabase-client';
+import { UpdateExamSchema } from '@/schemas/exam.schema';
 import {
   getExamDetails,
   updateExam,
-} from '@/src/services/exams';
+} from '@/services/exams';
 
 interface ExamResponse {
   exam_id?: string;
@@ -52,7 +52,7 @@ export default async function handler(
         return res.status(result.statusCode || 500).json({ error: result.error });
       }
 
-      return res.status(200).json(result.data);
+      return res.status(200).json(result.data!);
     }
 
     // PUT: Update exam
@@ -72,7 +72,7 @@ export default async function handler(
         return res.status(result.statusCode || 500).json({ error: result.error });
       }
 
-      return res.status(200).json(result.data);
+      return res.status(200).json(result.data!);
     }
 
     // Method not allowed

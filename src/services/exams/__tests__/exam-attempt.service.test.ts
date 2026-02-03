@@ -10,10 +10,10 @@ import {
   completeExamAttempt,
   getAttemptDetails,
 } from '../exam-attempt.service';
-import { getSupabaseServiceClient } from '@/src/services/database/supabase-client';
+import { getSupabaseServiceClient } from '@/services/database/supabase-client';
 
 // Mock the Supabase client
-vi.mock('@/src/services/database/supabase-client', () => {
+vi.mock('@/services/database/supabase-client', () => {
   const mockClient = {
     from: vi.fn(),
     rpc: vi.fn(),
@@ -1337,3 +1337,4 @@ describe('Exam Attempt Service', () => {
     });
   });
 });
+

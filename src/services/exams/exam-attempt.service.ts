@@ -4,7 +4,7 @@
  * Includes state machine validation, scoring, and weak area detection
  */
 
-import { getSupabaseServiceClient, hashUuidToLockId, withAdvisoryLock } from '@/src/services/database/supabase-client';
+import { getSupabaseServiceClient, hashUuidToLockId, withAdvisoryLock } from '@/services/database/supabase-client';
 import {
   StartAttemptResponse,
   SubmitAnswerResponse,
@@ -13,7 +13,7 @@ import {
   SubmitAnswerInput,
   WeakArea,
   AnswerDetail,
-} from '@/src/schemas/exam-attempt.schema';
+} from '@/schemas/exam-attempt.schema';
 
 // ============================================================================
 // START ATTEMPT
@@ -77,7 +77,7 @@ export async function startExamAttempt(
     // Use advisory lock to prevent race conditions
     const lockId = hashUuidToLockId(examId);
 
-    return await withAdvisoryLock(lockId, async () => {
+    const result = await withAdvisoryLock(lockId, async () => {
       // Create attempt record
       const { data: attemptData, error: attemptError } = await client
         .from('exam_attempts')
@@ -106,13 +106,23 @@ export async function startExamAttempt(
         data: {
           attempt_id: attemptData.id,
           exam_id: examId,
-          status: 'in_progress',
+          status: 'in_progress' as const,
           duration_minutes: examData.duration_minutes,
           questions_count: questionsCount || 0,
           started_at: attemptData.started_at,
         },
       };
     });
+
+    if (!result) {
+      return {
+        success: false,
+        error: 'System busy, please try again',
+        statusCode: 503,
+      };
+    }
+
+    return result;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('Error in startExamAttempt:', message);
@@ -188,7 +198,8 @@ export async function submitAnswer(
     }
 
     // Validate option index is valid
-    const options = questionData.questions?.options || [];
+    const questions = questionData.questions as any;
+    const options = (Array.isArray(questions) ? questions[0]?.options : questions?.options) || [];
     if (input.selected_option_index < 0 || input.selected_option_index >= options.length) {
       return {
         success: false,
@@ -200,7 +211,7 @@ export async function submitAnswer(
     // Use advisory lock to prevent race conditions on answer submission
     const lockId = hashUuidToLockId(attemptId);
 
-    return await withAdvisoryLock(lockId, async () => {
+    const result = await withAdvisoryLock(lockId, async () => {
       // Check if already answered
       const { data: existingAnswer, error: checkError } = await client
         .from('exam_answers')
@@ -290,6 +301,16 @@ export async function submitAnswer(
         },
       };
     });
+
+    if (!result) {
+      return {
+        success: false,
+        error: 'System busy, please try again',
+        statusCode: 503,
+      };
+    }
+
+    return result;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('Error in submitAnswer:', message);
@@ -349,7 +370,7 @@ export async function completeExamAttempt(
     // Use advisory lock
     const lockId = hashUuidToLockId(attemptId);
 
-    return await withAdvisoryLock(lockId, async () => {
+    const result = await withAdvisoryLock(lockId, async () => {
       // Calculate score using stored procedure
       const { data: scoreData, error: scoreError } = await client
         .rpc('calculate_exam_score', {
@@ -421,6 +442,16 @@ export async function completeExamAttempt(
         },
       };
     });
+
+    if (!result) {
+      return {
+        success: false,
+        error: 'System busy, please try again',
+        statusCode: 503,
+      };
+    }
+
+    return result;
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Unknown error';
     console.error('Error in completeExamAttempt:', message);
@@ -542,3 +573,4 @@ export async function getAnswerCount(attemptId: string): Promise<number> {
     .eq('attempt_id', attemptId);
   return count || 0;
 }
+

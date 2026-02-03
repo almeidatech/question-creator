@@ -71,7 +71,7 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
 
     // Date filter
     if (dateFilter !== 'all') {
-      const attemptDate = new Date(a.attempted_at);
+
       const cutoffDate = dateFilter === 'week' ? weekAgo : monthAgo;
       filtered = filtered.filter(a => new Date(a.attempted_at) >= cutoffDate);
     }
@@ -271,3 +271,4 @@ export const ExamHistory: React.FC<ExamHistoryProps> = ({
     </div>
   );
 };
+

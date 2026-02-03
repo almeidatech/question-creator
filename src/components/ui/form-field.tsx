@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
  */
 export interface FormFieldProps {
   /** Label text for the field */
-  label?: string;
+  label?: ReactNode;
   /** Whether the field is required */
   required?: boolean;
   /** Helper text displayed below label */
@@ -125,3 +125,4 @@ export const FormField = forwardRef<HTMLDivElement, FormFieldProps>(
 );
 
 FormField.displayName = 'FormField';
+

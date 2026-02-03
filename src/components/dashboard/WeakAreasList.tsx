@@ -64,3 +64,4 @@ export const WeakAreasList: React.FC<WeakAreasListProps> = ({ areas }) => {
     </div>
   );
 };
+

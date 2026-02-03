@@ -263,3 +263,4 @@ export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSu
     </form>
   );
 };
+

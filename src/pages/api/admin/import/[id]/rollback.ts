@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { verifyAuth } from '@/src/middleware/auth.middleware';
-import { BatchProcessorService } from '@/src/services/import/batch-processor.service';
+import { verifyAuth } from '@/middleware/auth.middleware';
+import { BatchProcessorService } from '@/services/import/batch-processor.service';
 
 /**
  * POST /api/admin/import/[id]/rollback

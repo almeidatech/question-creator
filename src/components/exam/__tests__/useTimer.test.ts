@@ -165,3 +165,4 @@ describe('useTimer hook', () => {
     expect(onExpire).toHaveBeenCalled();
   });
 });
+

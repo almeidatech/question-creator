@@ -1,0 +1,30 @@
+
+> question-creator@1.0.0 build
+> next build
+
+⚠ `images.domains` is deprecated in favor of `images.remotePatterns`. Please update next.config.js to protect your application from malicious users.
+⚠ Invalid next.config.js options detected: 
+⚠     Unrecognized key(s) in object: 'swcMinify'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Running TypeScript ...
+Failed to compile.
+
+./src/components/ui/search-input.tsx:9:18
+Type error: Interface 'SearchInputProps' incorrectly extends interface 'InputHTMLAttributes<HTMLInputElement>'.
+  Types of property 'onChange' are incompatible.
+    Type '((value: string) => void) | undefined' is not assignable to type 'ChangeEventHandler<HTMLInputElement, HTMLInputElement> | undefined'.
+      Type '(value: string) => void' is not assignable to type 'ChangeEventHandler<HTMLInputElement, HTMLInputElement>'.
+        Types of parameters 'value' and 'event' are incompatible.
+          Type 'ChangeEvent<HTMLInputElement, HTMLInputElement>' is not assignable to type 'string'.
+
+[0m [90m  7 |[39m [90m * Props for SearchInput component[39m
+ [90m  8 |[39m [90m */[39m
+[31m[1m>[22m[39m[90m  9 |[39m [36mexport[39m [36minterface[39m [33mSearchInputProps[39m
+ [90m    |[39m                  [31m[1m^[22m[39m
+ [90m 10 |[39m   [36mextends[39m [33mReact[39m[33m.[39m[33mInputHTMLAttributes[39m[33m<[39m[33mHTMLInputElement[39m[33m>[39m {
+ [90m 11 |[39m   [90m/** Current search value */[39m
+ [90m 12 |[39m   value[33m?[39m[33m:[39m string[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: null

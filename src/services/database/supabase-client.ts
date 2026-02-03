@@ -139,3 +139,4 @@ export async function getCurrentUserId(authHeader?: string): Promise<string | nu
     return null;
   }
 }
+

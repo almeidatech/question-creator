@@ -40,3 +40,4 @@ export const Divider = forwardRef<HTMLHRElement, DividerProps>(
 );
 
 Divider.displayName = 'Divider';
+

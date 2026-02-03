@@ -1,0 +1,26 @@
+
+> question-creator@1.0.0 build
+> next build
+
+⚠ `images.domains` is deprecated in favor of `images.remotePatterns`. Please update next.config.js to protect your application from malicious users.
+⚠ Invalid next.config.js options detected: 
+⚠     Unrecognized key(s) in object: 'swcMinify'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Running TypeScript ...
+Failed to compile.
+
+./src/pages/api/exams/index.ts:63:35
+Type error: Argument of type '{ exam_id: string; name: string; question_count: number; created_at: string; } | undefined' is not assignable to parameter of type 'CreateExamResponse | ListExamsResponse'.
+  Type 'undefined' is not assignable to type 'CreateExamResponse | ListExamsResponse'.
+
+[0m [90m 61 |[39m       }
+ [90m 62 |[39m
+[31m[1m>[22m[39m[90m 63 |[39m       [36mreturn[39m res[33m.[39mstatus([35m201[39m)[33m.[39mjson(result[33m.[39mdata)[33m;[39m
+ [90m    |[39m                                   [31m[1m^[22m[39m
+ [90m 64 |[39m     }
+ [90m 65 |[39m
+ [90m 66 |[39m     [90m// GET: List exams[39m[0m
+Next.js build worker exited with code: 1 and signal: null

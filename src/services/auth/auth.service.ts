@@ -3,10 +3,10 @@
  * Core business logic for signup/login
  */
 
-import { AuthResponse, SignupRequest, LoginRequest } from '@/src/types/auth';
+import { AuthResponse, SignupRequest, LoginRequest } from '@/types/auth';
 import { JWTService } from './jwt.service';
 import { PasswordService } from './password.service';
-import { validateSignup, validateLogin } from '@/src/utils/validation';
+import { validateSignup, validateLogin } from '@/utils/validation';
 
 /**
  * In-memory user store (replace with Supabase in production)
@@ -147,3 +147,4 @@ export class AuthService {
     return crypto.randomUUID();
   }
 }
+

@@ -229,3 +229,4 @@ export const ExamTaker: React.FC<ExamTakerProps> = ({
     </div>
   );
 };
+

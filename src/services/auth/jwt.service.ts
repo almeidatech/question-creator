@@ -3,7 +3,7 @@
  * Handles token creation and validation with strict typing
  */
 
-import { JWTPayload, TokenType } from '@/src/types/auth';
+import { JWTPayload, TokenType } from '@/types/auth';
 
 // Configuration constants
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-key-change-in-production';
@@ -104,3 +104,4 @@ export class JWTService {
     return type === 'access' ? ACCESS_TOKEN_EXPIRY : REFRESH_TOKEN_EXPIRY;
   }
 }
+

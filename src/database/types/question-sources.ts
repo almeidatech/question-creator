@@ -91,10 +91,11 @@ export const auditLogSchema = z.object({
   table_name: z.string(),
   operation: z.enum(['INSERT', 'UPDATE', 'DELETE']),
   record_id: z.string(),
-  old_value: z.record(z.unknown()).nullable(),
-  new_value: z.record(z.unknown()).nullable(),
+  old_value: z.record(z.string(), z.unknown()).nullable(),
+  new_value: z.record(z.string(), z.unknown()).nullable(),
   changed_by: z.string().uuid().nullable(),
   changed_at: z.date(),
 });
 
 export type AuditLog = z.infer<typeof auditLogSchema>;
+

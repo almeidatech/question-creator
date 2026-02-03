@@ -55,3 +55,4 @@ describe('ActivityChart', () => {
     expect(screen.getByText('Activity (Last 7 Days)')).toBeInTheDocument();
   });
 });
+

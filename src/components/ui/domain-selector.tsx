@@ -20,7 +20,7 @@ export interface Domain {
 /**
  * DomainSelector Component Props
  */
-export interface DomainSelectorProps extends HTMLAttributes<HTMLDivElement> {
+export interface DomainSelectorProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onChange'> {
   /** Label for the form field */
   label?: string;
   /** Whether the field is required */
@@ -156,3 +156,4 @@ export const DomainSelector = forwardRef<HTMLDivElement, DomainSelectorProps>(
 );
 
 DomainSelector.displayName = 'DomainSelector';
+

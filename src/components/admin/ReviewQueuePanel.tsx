@@ -127,7 +127,7 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  variant="info"
+                  variant="primary"
                   onClick={() => handleApprove(item.question_id)}
                   disabled={processingId === item.question_id}
                   className="flex-1 text-xs"
@@ -141,7 +141,7 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
                     <Button
                       size="sm"
                       variant="danger"
-                      onClick={() => handleReject(item.question_id, rejectNotes)}
+                      onClick={() => handleReject(item.question_id)}
                       disabled={processingId === item.question_id}
                       className="flex-1 text-xs"
                     >
@@ -181,3 +181,4 @@ export const ReviewQueuePanel: React.FC<ReviewQueuePanelProps> = ({
 };
 
 export default ReviewQueuePanel;
+

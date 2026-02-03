@@ -148,12 +148,13 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
 
           <div className={styles.formGroup}>
             <label htmlFor="description">Description</label>
-            <Input
+            <textarea
               id="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Optional exam description"
-              as="textarea"
+              className="w-full px-4 py-2 text-base border-2 rounded-lg transition-colors focus:outline-none border-neutral-300 text-neutral-900 placeholder-neutral-400 hover:border-neutral-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              rows={3}
             />
           </div>
 
@@ -336,3 +337,4 @@ export const ExamBuilder: React.FC<ExamBuilderProps> = ({
     </div>
   );
 };
+

@@ -120,3 +120,4 @@ export const ExamListItemSchema = z.object({
 });
 
 export type ExamListItem = z.infer<typeof ExamListItemSchema>;
+

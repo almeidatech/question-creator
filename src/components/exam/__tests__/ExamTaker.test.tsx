@@ -376,3 +376,4 @@ describe('ExamTaker', () => {
     expect(screen.getByRole('button', { name: /complete & submit/i })).toBeDisabled();
   });
 });
+

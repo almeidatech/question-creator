@@ -1,0 +1,25 @@
+
+> question-creator@1.0.0 build
+> next build
+
+⚠ `images.domains` is deprecated in favor of `images.remotePatterns`. Please update next.config.js to protect your application from malicious users.
+⚠ Invalid next.config.js options detected: 
+⚠     Unrecognized key(s) in object: 'swcMinify'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env
+
+  Running TypeScript ...
+Failed to compile.
+
+./src/services/cache/redis-cache-service.ts:272:7
+Type error: 'timestamp' is specified more than once, so this usage will be overwritten.
+
+[0m [90m 270 |[39m   console[33m.[39mlog(
+ [90m 271 |[39m     [33mJSON[39m[33m.[39mstringify({
+[31m[1m>[22m[39m[90m 272 |[39m       timestamp[33m:[39m data[33m.[39mtimestamp[33m.[39mtoISOString()[33m,[39m
+ [90m     |[39m       [31m[1m^[22m[39m
+ [90m 273 |[39m       event[33m:[39m [32m'cache_event'[39m[33m,[39m
+ [90m 274 |[39m       [33m...[39mdata[33m,[39m
+ [90m 275 |[39m     })[0m
+Next.js build worker exited with code: 1 and signal: null

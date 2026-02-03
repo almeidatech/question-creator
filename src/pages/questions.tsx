@@ -1,10 +1,7 @@
-'use client';
-
-export const dynamic = 'force-dynamic';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuthStore, useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import { Layout } from '@/components/layout';
 import { Button, Input } from '@/components/ui';
 import { SearchIcon, Plus, RefreshCw } from 'lucide-react';
@@ -21,6 +18,7 @@ export default function QuestionsPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { darkMode } = useUIStore();
+  const { t } = useI18n();
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -115,10 +113,10 @@ export default function QuestionsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Questions
+                  {t('questions.title')}
                 </h1>
                 <p className={`mt-2 text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Browse and generate AI-powered questions
+                  {t('questions.subtitle')}
                 </p>
               </div>
               <button
@@ -132,7 +130,7 @@ export default function QuestionsPage() {
                 ) : (
                   <Plus size={20} />
                 )}
-                Generate Questions
+                {t('questions.generateButton')}
               </button>
             </div>
           </div>
@@ -172,7 +170,7 @@ export default function QuestionsPage() {
                 />
                 <Input
                   type="text"
-                  placeholder="Search questions..."
+                  placeholder={t('questions.searchPlaceholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={`pl-10 ${
@@ -199,7 +197,7 @@ export default function QuestionsPage() {
                       : 'bg-white border-gray-300 text-gray-900'
                   }`}
                 >
-                <option value="all">All Topics</option>
+                <option value="all">{t('questions.allTopics')}</option>
                 {topics.map((topic) => (
                   <option key={topic} value={topic}>
                     {topic}
@@ -284,4 +282,8 @@ export default function QuestionsPage() {
       </div>
     </Layout>
   );
+}
+
+export async function getServerSideProps() {
+  return { props: {} };
 }

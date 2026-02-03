@@ -27,7 +27,8 @@
       "Bash(git push:*)",
       "Bash(tee:*)",
       "Bash(move \"d:\\\\question-creator\\\\src\\\\pages\\\\api\\\\exams\\\\__tests__\" \"d:\\\\question-creator\\\\src\\\\__tests__\\\\api\\\\exams\")",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(set NODE_OPTIONS=--max-old-space-size=4096:*)"
     ]
   }
 }

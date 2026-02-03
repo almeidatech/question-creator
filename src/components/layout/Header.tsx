@@ -1,9 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { useAuthStore, useUIStore, User } from '@/stores';
 import { Button } from '@/components/ui/button';
 import { Menu, LogOut, Moon, Sun } from 'lucide-react';
+
+// Import LanguageSelector as a client-only component to avoid SSR issues with useI18n hook
+const LanguageSelector = dynamic(
+  () => import('@/components/common/LanguageSelector').then(mod => ({ default: mod.LanguageSelector })),
+  { ssr: false }
+);
 
 interface HeaderProps {
   user: User | null;
@@ -39,6 +46,10 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
 
         {/* Right: User menu + Actions */}
         <div className="flex items-center gap-2 sm:gap-4">
+          <Suspense fallback={<div className="w-20" />}>
+            <LanguageSelector />
+          </Suspense>
+
           <button
             onClick={toggleDarkMode}
             className={`p-2 rounded-lg ${

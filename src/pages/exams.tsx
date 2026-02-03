@@ -1,7 +1,3 @@
-'use client';
-
-export const dynamic = 'force-dynamic';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuthStore, useExamStore, useUIStore } from '@/stores';
@@ -9,6 +5,7 @@ import { Layout } from '@/components/layout';
 import { ExamBuilder, ExamHistory } from '@/components/exam';
 import { Tabs } from '@/components/ui';
 import { Plus } from 'lucide-react';
+import { useI18n } from '@/i18n/i18nContext';
 
 interface Question {
   id: string;
@@ -22,6 +19,7 @@ export default function ExamsPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { darkMode } = useUIStore();
+  const { t } = useI18n();
   const { setSelectedQuestions, setExamName, setExamDescription, setDuration, setPassingScore } =
     useExamStore();
 
@@ -103,19 +101,20 @@ export default function ExamsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                  Exam Management
+                  {t('exams.title')}
                 </h1>
                 <p className={`mt-2 text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Create exams or review your past attempts.
+                  {t('exams.subtitle')}
                 </p>
               </div>
               {activeTab === 'history' && (
                 <button
+                  type="button"
                   onClick={() => setActiveTab('create')}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                 >
                   <Plus size={20} />
-                  Create Exam
+                  {t('exams.createButton')}
                 </button>
               )}
             </div>
@@ -144,6 +143,7 @@ export default function ExamsPage() {
           >
             <div className="flex border-b">
               <button
+                type="button"
                 onClick={() => setActiveTab('history')}
                 className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
                   activeTab === 'history'
@@ -153,9 +153,10 @@ export default function ExamsPage() {
                     : `${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-900'}`
                 }`}
               >
-                Exam History
+                {t('exams.historyTab')}
               </button>
               <button
+                type="button"
                 onClick={() => setActiveTab('create')}
                 className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
                   activeTab === 'create'
@@ -165,7 +166,7 @@ export default function ExamsPage() {
                     : `${darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-900'}`
                 }`}
               >
-                Create Exam
+                {t('exams.createTab')}
               </button>
             </div>
 
@@ -197,4 +198,8 @@ export default function ExamsPage() {
       </div>
     </Layout>
   );
+}
+
+export async function getServerSideProps() {
+  return { props: {} };
 }

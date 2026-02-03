@@ -1,8 +1,7 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuthStore, useDashboardStore, useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import { Layout } from '@/components/layout';
 import {
   StatsCard,
@@ -25,6 +24,7 @@ export default function Dashboard() {
   const { stats, activity, weakAreas, loading, error, refreshStats } =
     useDashboardStore();
   const { darkMode } = useUIStore();
+  const { t } = useI18n();
   const [isInitializing, setIsInitializing] = useState(true);
 
   // Auth guard
@@ -72,10 +72,10 @@ export default function Dashboard() {
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              Welcome back, {user.first_name || 'Student'}!
+              {t('dashboard.welcomeBack')} {user.first_name || 'Student'}!
             </h1>
             <p className={`mt-2 text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Here's your learning progress and quick actions.
+              {t('dashboard.yourProgress')}
             </p>
           </div>
         </div>
@@ -91,28 +91,28 @@ export default function Dashboard() {
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatsCard
-              label="Questions Attempted"
+              label={t('dashboard.questionsAttempted')}
               value={stats?.total_questions_attempted || 0}
               trend={12}
               icon={<BookOpen size={24} />}
               color="blue"
             />
             <StatsCard
-              label="Correct Answers"
+              label={t('dashboard.correctAnswers')}
               value={stats?.correct_count || 0}
               trend={8}
               icon={<CheckCircle size={24} />}
               color="green"
             />
             <StatsCard
-              label="Accuracy Rate"
+              label={t('dashboard.accuracyRate')}
               value={`${stats?.accuracy_percentage || 0}%`}
               trend={-2}
               icon={<TrendingUp size={24} />}
               color="purple"
             />
             <StatsCard
-              label="Current Streak"
+              label={t('dashboard.currentStreak')}
               value={stats?.streak_days || 0}
               trend={3}
               icon={<Flame size={24} />}
@@ -129,7 +129,7 @@ export default function Dashboard() {
               } p-6`}
             >
               <h2 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                This Week's Activity
+                {t('dashboard.thisWeekActivity')}
               </h2>
               {activity && activity.length > 0 ? (
                 <ActivityChart data={activity} type="bar" />
@@ -185,4 +185,8 @@ export default function Dashboard() {
       </div>
     </Layout>
   );
+}
+
+export async function getServerSideProps() {
+  return { props: {} };
 }

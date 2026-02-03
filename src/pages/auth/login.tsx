@@ -23,8 +23,8 @@ export default function LoginPage() {
     <div
       className={`min-h-screen flex items-center justify-center px-4 transition-colors ${
         darkMode
-          ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
-          : 'bg-gradient-to-br from-primary-50 via-blue-50 to-indigo-100'
+          ? 'bg-linear-to-br from-gray-900 via-gray-800 to-gray-900'
+          : 'bg-linear-to-br from-primary-50 via-blue-50 to-indigo-100'
       }`}
     >
       <div className="w-full max-w-md">

@@ -34,10 +34,11 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
     mode: 'onChange',
   });
 
-  const password = watch('password');
+  const password = watch('password') || '';
   const passwordStrength = calculatePasswordStrength(password);
 
   function calculatePasswordStrength(pwd: string): { level: number; label: string } {
+    if (!pwd) return { level: 0, label: 'Weak' };
     let level = 0;
     if (pwd.length >= 8) level++;
     if (/[A-Z]/.test(pwd)) level++;

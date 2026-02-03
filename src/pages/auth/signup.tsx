@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuthStore, useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import { SignupForm } from '@/components/auth';
 
 export async function getServerSideProps() {
@@ -8,6 +9,7 @@ export async function getServerSideProps() {
 }
 
 export default function SignupPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const { user } = useAuthStore();
   const { darkMode } = useUIStore();
@@ -32,10 +34,10 @@ export default function SignupPage() {
         {/* Logo/Branding */}
         <div className="text-center mb-8">
           <h1 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Question Creator
+            {t('common.appName')}
           </h1>
           <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Create and share educational questions
+            {t('questions.subtitle')}
           </p>
         </div>
 
@@ -48,35 +50,23 @@ export default function SignupPage() {
           } p-6 sm:p-8`}
         >
           <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Create Account
+            {t('auth.signup')}
           </h2>
 
           <SignupForm onSuccess={handleSignupSuccess} />
 
-          {/* Login Link */}
-          <div className={`mt-6 text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            <p>
-              Already have an account?{' '}
-              <button
-                onClick={() => router.push('/auth/login')}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Log in
-              </button>
-            </p>
-          </div>
         </div>
 
         {/* Help Text */}
         <div className={`mt-6 text-center text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
           <p>
-            By signing up, you agree to our{' '}
+            {t('auth.agreeToTerms').split('Terms of Service')[0]}{' '}
             <button className="text-blue-600 hover:text-blue-700 underline">
-              Terms of Service
+              {t('footer.terms')}
             </button>
             {' '}and{' '}
             <button className="text-blue-600 hover:text-blue-700 underline">
-              Privacy Policy
+              {t('footer.privacy')}
             </button>
           </p>
         </div>

@@ -55,15 +55,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     // Variant styles
     const variantStyles = {
       primary:
-        'bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800 focus:ring-primary-500',
+        'bg-sky-600 text-white hover:bg-sky-700 active:bg-sky-800 focus:ring-sky-500',
       secondary:
-        'bg-neutral-200 text-neutral-900 hover:bg-neutral-300 active:bg-neutral-400 focus:ring-neutral-500',
+        'bg-gray-200 text-gray-900 hover:bg-gray-300 active:bg-gray-400 focus:ring-gray-500',
       danger:
-        'bg-error-600 text-white hover:bg-error-700 active:bg-error-800 focus:ring-error-500',
+        'bg-red-600 text-white hover:bg-red-700 active:bg-red-800 focus:ring-red-500',
       ghost:
-        'bg-transparent text-primary-600 hover:bg-primary-50 active:bg-primary-100 focus:ring-primary-500',
+        'bg-transparent text-sky-600 hover:bg-sky-50 active:bg-sky-100 focus:ring-sky-500',
       outline:
-        'border-2 border-neutral-300 text-neutral-900 hover:bg-neutral-50 active:bg-neutral-100 focus:ring-neutral-500',
+        'border-2 border-gray-300 text-gray-900 hover:bg-gray-50 active:bg-gray-100 focus:ring-gray-500',
     };
 
     // Combine styles

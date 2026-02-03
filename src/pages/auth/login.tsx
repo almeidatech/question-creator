@@ -4,10 +4,12 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuthStore } from '@/stores';
 import { useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Card, Heading1, Paragraph, Divider } from '@/components/ui';
 
 export default function LoginPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const { user } = useAuthStore();
   const { darkMode } = useUIStore();
@@ -44,12 +46,12 @@ export default function LoginPage() {
               darkMode ? 'text-gray-100' : 'text-gray-900'
             }`}
           >
-            Question Creator
+            {t('common.appName')}
           </Heading1>
           <Paragraph
             className={darkMode ? 'text-gray-400' : 'text-gray-600'}
           >
-            Manage exams and track student progress
+            {t('pages.manageExams')}
           </Paragraph>
         </div>
 
@@ -79,14 +81,14 @@ export default function LoginPage() {
             }`}
           >
             <p className="mb-4">
-              By signing in, you agree to our{' '}
+              {t('auth.agreeToTerms').split('Terms of Service')[0]}{' '}
               <a
                 href="#"
                 className={`font-medium hover:underline ${
                   darkMode ? 'text-primary-400' : 'text-primary-600'
                 }`}
               >
-                Terms of Service
+                {t('footer.terms')}
               </a>
             </p>
           </div>
@@ -100,9 +102,9 @@ export default function LoginPage() {
               : 'bg-blue-50 border-blue-200 text-blue-700'
           }`}
         >
-          <p className="text-sm font-medium mb-1">Demo Credentials</p>
+          <p className="text-sm font-medium mb-1">{t('pages.demoCredentials')}</p>
           <p className="text-xs opacity-75">
-            Use your registered email and password to sign in
+            {t('auth.enterYourEmail')}
           </p>
         </div>
       </div>

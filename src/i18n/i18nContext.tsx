@@ -8,7 +8,7 @@ export type Language = 'pt-BR' | 'en' | 'es';
 interface I18nContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 }
 
 const translations = {
@@ -20,15 +20,14 @@ const translations = {
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
 export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>('en');
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [language, setLanguageState] = useState<Language>('pt-BR');
 
   // Load language from localStorage on mount (client-side only)
   useEffect(() => {
     const savedLanguage = localStorage.getItem('language') as Language | null;
     const browserLanguage = navigator.language.split('-')[0];
 
-    let detectedLanguage: Language = 'en';
+    let detectedLanguage: Language = 'pt-BR';
 
     if (savedLanguage && ['pt-BR', 'en', 'es'].includes(savedLanguage)) {
       detectedLanguage = savedLanguage;
@@ -39,7 +38,6 @@ export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     setLanguageState(detectedLanguage);
-    setIsHydrated(true);
   }, []);
 
   const setLanguage = (lang: Language) => {
@@ -48,7 +46,7 @@ export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Nested key access: "auth.login" => translations[language].auth.login
-  const t = (key: string): string => {
+  const t = (key: string, params?: Record<string, string | number>): string => {
     const keys = key.split('.');
     let value: any = translations[language];
 
@@ -56,18 +54,25 @@ export const I18nProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (value && typeof value === 'object' && k in value) {
         value = value[k];
       } else {
-        // Fallback to key itself if translation not found
+        // Dev mode warning for missing translations
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`Missing translation key: "${key}" for language: ${language}`);
+        }
         return key;
       }
     }
 
-    return typeof value === 'string' ? value : key;
-  };
+    let result = typeof value === 'string' ? value : key;
 
-  // Prevent hydration mismatch by only rendering when hydrated
-  if (!isHydrated) {
-    return <div>{children}</div>;
-  }
+    // Interpolate parameters
+    if (params && typeof result === 'string') {
+      result = result.replace(/\{\{(\w+)\}\}/g, (_, paramKey) => {
+        return String(params[paramKey] ?? `{{${paramKey}}}`);
+      });
+    }
+
+    return result;
+  };
 
   return (
     <I18nContext.Provider value={{ language, setLanguage, t }}>

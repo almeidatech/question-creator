@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SignupSchema, SignupFormData } from '@/schemas/auth.schema';
 import { useAuthStore, useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import {
   Button,
   Input,
@@ -18,6 +19,7 @@ interface SignupFormProps {
 }
 
 export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
+  const { t } = useI18n();
   const { darkMode } = useUIStore();
   const { setUser, setToken } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
@@ -38,14 +40,20 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   const passwordStrength = calculatePasswordStrength(password);
 
   function calculatePasswordStrength(pwd: string): { level: number; label: string } {
-    if (!pwd) return { level: 0, label: 'Weak' };
+    if (!pwd) return { level: 0, label: t('auth.weak') };
     let level = 0;
     if (pwd.length >= 8) level++;
     if (/[A-Z]/.test(pwd)) level++;
     if (/[a-z]/.test(pwd)) level++;
     if (/[0-9]/.test(pwd)) level++;
-    const labels = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
-    return { level, label: labels[level] || 'Weak' };
+    const labels = [
+      t('auth.weak'),
+      t('auth.fair'),
+      t('auth.good'),
+      t('auth.strong'),
+      t('auth.veryStrong'),
+    ];
+    return { level, label: labels[level] || t('auth.weak') };
   }
 
   const onSubmit = async (data: SignupFormData) => {
@@ -82,7 +90,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       {/* Email Field */}
       <FormField
         htmlFor="email"
-        label="Email Address"
+        label={t('auth.emailAddress')}
         errorMessage={errors.email?.message}
         variant={errors.email ? 'error' : 'default'}
         required
@@ -98,7 +106,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       {/* Password Field */}
       <FormField
         htmlFor="password"
-        label="Password"
+        label={t('auth.password')}
         errorMessage={errors.password?.message}
         variant={errors.password ? 'error' : 'default'}
         required
@@ -119,7 +127,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
                 ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -151,7 +159,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       {/* Confirm Password Field */}
       <FormField
         htmlFor="confirm_password"
-        label="Confirm Password"
+        label={t('auth.confirmPassword')}
         errorMessage={errors.confirm_password?.message}
         variant={errors.confirm_password ? 'error' : 'default'}
         required
@@ -191,9 +199,9 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
             darkMode ? 'text-gray-300' : 'text-gray-700'
           }`}
         >
-          I agree to the{' '}
+          {t('auth.agreeToTerms').split('Terms of Service')[0]}{' '}
           <a href="/terms" className={`hover:underline ${darkMode ? 'text-primary-400' : 'text-primary-600'}`}>
-            Terms of Service
+            {t('footer.terms')}
           </a>
         </label>
       </div>
@@ -206,12 +214,12 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={!isValid || isSubmitting}
+        disabled={isSubmitting}
         fullWidth
         isLoading={isSubmitting}
         variant="primary"
       >
-        {isSubmitting ? 'Creating account...' : 'Create Account'}
+        {isSubmitting ? t('auth.creatingAccount') : t('auth.signup')}
       </Button>
 
       {/* Sign In Link */}
@@ -220,14 +228,14 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
           darkMode ? 'text-gray-400' : 'text-gray-600'
         }`}
       >
-        Already have an account?{' '}
+        {t('auth.alreadyHaveAccount')}{' '}
         <a
           href="/auth/login"
           className={`font-medium hover:underline transition-colors ${
             darkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-700'
           }`}
         >
-          Sign in
+          {t('auth.login')}
         </a>
       </p>
     </form>

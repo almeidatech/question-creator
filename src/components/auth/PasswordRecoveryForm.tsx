@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { PasswordRecoverySchema, PasswordRecoveryFormData } from '@/schemas/auth.schema';
 import { useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import {
   Button,
   Input,
@@ -17,6 +18,7 @@ interface PasswordRecoveryFormProps {
 }
 
 export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSuccess }) => {
+  const { t } = useI18n();
   const { darkMode } = useUIStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -80,7 +82,7 @@ export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSu
       {/* Email Field */}
       <FormField
         htmlFor="email"
-        label="Email Address"
+        label={t('auth.emailAddress')}
         errorMessage={errors.email?.message}
         variant={errors.email ? 'error' : 'default'}
         required
@@ -101,7 +103,7 @@ export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSu
           fullWidth
           variant="primary"
         >
-          Send Verification Code
+          {t('auth.sendingRecoveryCode')}
         </Button>
       )}
 
@@ -110,7 +112,7 @@ export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSu
           {/* Verification Code Field */}
           <FormField
             htmlFor="verification_code"
-            label="Verification Code"
+            label={t('auth.verificationCode')}
             errorMessage={errors.verification_code?.message}
             variant={errors.verification_code ? 'error' : 'default'}
             required
@@ -126,7 +128,7 @@ export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSu
           {/* New Password Field */}
           <FormField
             htmlFor="new_password"
-            label="New Password"
+            label={t('auth.newPassword')}
             errorMessage={errors.new_password?.message}
             variant={errors.new_password ? 'error' : 'default'}
             required
@@ -147,7 +149,7 @@ export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSu
                     ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700'
                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                 }`}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
@@ -157,7 +159,7 @@ export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSu
           {/* Confirm Password Field */}
           <FormField
             htmlFor="confirm_password"
-            label="Confirm Password"
+            label={t('auth.confirmPassword')}
             errorMessage={errors.confirm_password?.message}
             variant={errors.confirm_password ? 'error' : 'default'}
             required
@@ -187,12 +189,12 @@ export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSu
 
           <Button
             type="submit"
-            disabled={!isValid || isSubmitting}
+            disabled={isSubmitting}
             fullWidth
             isLoading={isSubmitting}
             variant="primary"
           >
-            {isSubmitting ? 'Resetting...' : 'Reset Password'}
+            {isSubmitting ? t('messages.redirecting') : t('auth.resetPassword')}
           </Button>
 
           <Button
@@ -201,7 +203,7 @@ export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSu
             fullWidth
             variant="secondary"
           >
-            Back
+            {t('common.back')}
           </Button>
         </>
       )}
@@ -212,14 +214,14 @@ export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSu
           darkMode ? 'text-gray-400' : 'text-gray-600'
         }`}
       >
-        Remember your password?{' '}
+        {t('auth.forgotPassword')}{' '}
         <a
           href="/auth/login"
           className={`font-medium hover:underline transition-colors ${
             darkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-700'
           }`}
         >
-          Sign in
+          {t('auth.login')}
         </a>
       </p>
     </form>

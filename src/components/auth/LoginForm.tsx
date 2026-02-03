@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { LoginSchema, LoginFormData } from '@/schemas/auth.schema';
 import { useAuthStore, useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import {
   Button,
   Input,
@@ -18,6 +19,7 @@ interface LoginFormProps {
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
+  const { t } = useI18n();
   const { darkMode } = useUIStore();
   const { setUser, setToken, setRememberMe } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
@@ -52,7 +54,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       });
 
       if (!response.ok) {
-        setSubmitError('Invalid email or password');
+        setSubmitError(t('validation.emailInvalid'));
         throw new Error('Invalid credentials');
       }
 
@@ -88,7 +90,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       {/* Email Field */}
       <FormField
         htmlFor="email"
-        label="Email Address"
+        label={t('auth.emailAddress')}
         errorMessage={errors.email?.message}
         variant={errors.email ? 'error' : 'default'}
         required
@@ -104,7 +106,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       {/* Password Field */}
       <FormField
         htmlFor="password"
-        label="Password"
+        label={t('auth.password')}
         errorMessage={errors.password?.message}
         variant={errors.password ? 'error' : 'default'}
         required
@@ -125,7 +127,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
                 ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
@@ -144,19 +146,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
             darkMode ? 'text-gray-300' : 'text-gray-700'
           }`}
         >
-          Remember me for 30 days
+          {t('auth.rememberMe30Days')}
         </label>
       </div>
 
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={!isValid || isSubmitting}
+        disabled={isSubmitting}
         fullWidth
         isLoading={isSubmitting}
         variant="primary"
       >
-        {isSubmitting ? 'Signing in...' : 'Sign In'}
+        {isSubmitting ? t('auth.signingIn') : t('auth.login')}
       </Button>
 
       {/* Sign Up Link */}
@@ -165,14 +167,14 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
           darkMode ? 'text-gray-400' : 'text-gray-600'
         }`}
       >
-        Don't have an account?{' '}
+        {t('auth.dontHaveAccount')}{' '}
         <a
           href="/auth/signup"
           className={`font-medium hover:underline transition-colors ${
             darkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-700'
           }`}
         >
-          Sign up
+          {t('auth.signup')}
         </a>
       </p>
     </form>

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuthStore, useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import { PasswordRecoveryForm } from '@/components/auth';
 
 export async function getServerSideProps() {
@@ -8,6 +9,7 @@ export async function getServerSideProps() {
 }
 
 export default function RecoveryPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const { user } = useAuthStore();
   const { darkMode } = useUIStore();
@@ -32,10 +34,10 @@ export default function RecoveryPage() {
         {/* Logo/Branding */}
         <div className="text-center mb-8">
           <h1 className={`text-3xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Question Creator
+            {t('common.appName')}
           </h1>
           <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Create and share educational questions
+            {t('questions.subtitle')}
           </p>
         </div>
 
@@ -48,10 +50,10 @@ export default function RecoveryPage() {
           } p-6 sm:p-8`}
         >
           <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Reset Your Password
+            {t('auth.resetPassword')}
           </h2>
           <p className={`mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-            Enter your email to receive a password reset code.
+            {t('auth.enterYourEmail')}
           </p>
 
           <PasswordRecoveryForm onSuccess={handleRecoverySuccess} />
@@ -59,12 +61,12 @@ export default function RecoveryPage() {
           {/* Back to Login Link */}
           <div className={`mt-6 text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
             <p>
-              Remember your password?{' '}
+              {t('auth.forgotPassword')}{' '}
               <button
                 onClick={() => router.push('/auth/login')}
                 className="text-blue-600 hover:text-blue-700 font-medium"
               >
-                Log in
+                {t('auth.login')}
               </button>
             </p>
           </div>

@@ -3,6 +3,7 @@
 import React, { lazy, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { useAuthStore, useUIStore, User } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import { Button } from '@/components/ui/button';
 import { Menu, LogOut, Moon, Sun } from 'lucide-react';
 
@@ -18,6 +19,7 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
+  const { t } = useI18n();
   const { toggleDarkMode, darkMode } = useUIStore();
   const { toggleSidebar } = useUIStore();
 
@@ -37,7 +39,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
             className={`lg:hidden p-2 rounded-lg ${
               darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
             }`}
-            aria-label="Toggle sidebar"
+            aria-label={t('layout.toggleSidebar')}
           >
             <Menu size={24} />
           </button>
@@ -55,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
             className={`p-2 rounded-lg ${
               darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'
             }`}
-            aria-label="Toggle dark mode"
+            aria-label={t('layout.toggleDarkMode')}
           >
             {darkMode ? <Sun size={20} /> : <Moon size={20} />}
           </button>
@@ -77,7 +79,7 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                     ? 'hover:bg-red-900 text-red-400'
                     : 'hover:bg-red-50 text-red-600'
                 }`}
-                aria-label="Logout"
+                aria-label={t('common.logout')}
               >
                 <LogOut size={20} />
               </button>

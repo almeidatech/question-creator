@@ -3,8 +3,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 
 export const Footer: React.FC = () => {
+  const { t } = useI18n();
   const { darkMode } = useUIStore();
 
   const currentYear = new Date().getFullYear();
@@ -21,88 +23,88 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4 mb-8">
           <div>
             <h3 className={`font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-              Product
+              {t('footer.product')}
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/features" className="hover:underline">
-                  Features
+                  {t('footer.features')}
                 </Link>
               </li>
               <li>
                 <Link href="/pricing" className="hover:underline">
-                  Pricing
+                  {t('footer.pricing')}
                 </Link>
               </li>
               <li>
                 <Link href="/faq" className="hover:underline">
-                  FAQ
+                  {t('footer.faq')}
                 </Link>
               </li>
             </ul>
           </div>
           <div>
             <h3 className={`font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-              Company
+              {t('footer.company')}
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/about" className="hover:underline">
-                  About
+                  {t('footer.about')}
                 </Link>
               </li>
               <li>
                 <Link href="/blog" className="hover:underline">
-                  Blog
+                  {t('footer.blog')}
                 </Link>
               </li>
               <li>
                 <Link href="/careers" className="hover:underline">
-                  Careers
+                  {t('footer.careers')}
                 </Link>
               </li>
             </ul>
           </div>
           <div>
             <h3 className={`font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-              Support
+              {t('footer.support')}
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/help" className="hover:underline">
-                  Help Center
+                  {t('layout.help')}
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="hover:underline">
-                  Contact
+                  {t('footer.contact')}
                 </Link>
               </li>
               <li>
                 <Link href="/status" className="hover:underline">
-                  Status
+                  {t('admin.systemHealth')}
                 </Link>
               </li>
             </ul>
           </div>
           <div>
             <h3 className={`font-semibold mb-4 ${darkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-              Legal
+              {t('footer.legal')}
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/privacy" className="hover:underline">
-                  Privacy
+                  {t('footer.privacy')}
                 </Link>
               </li>
               <li>
                 <Link href="/terms" className="hover:underline">
-                  Terms
+                  {t('footer.terms')}
                 </Link>
               </li>
               <li>
                 <Link href="/cookies" className="hover:underline">
-                  Cookies
+                  {t('layout.settings')}
                 </Link>
               </li>
             </ul>
@@ -113,7 +115,7 @@ export const Footer: React.FC = () => {
             darkMode ? 'border-gray-700 pt-8' : 'border-gray-200 pt-8'
           } flex flex-col sm:flex-row justify-between items-center text-sm`}
         >
-          <p>&copy; {currentYear} Question Creator. All rights reserved.</p>
+          <p>{t('footer.copyright', { year: currentYear })}</p>
           <div className="flex gap-4 mt-4 sm:mt-0">
             <a href="#" className="hover:underline">
               Twitter

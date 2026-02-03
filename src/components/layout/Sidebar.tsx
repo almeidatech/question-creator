@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useUIStore } from '@/stores';
+import { useI18n } from '@/i18n/i18nContext';
 import {
   LayoutDashboard,
   HelpCircle,
@@ -15,15 +16,16 @@ interface SidebarProps {
   currentRoute: string;
 }
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/questions', label: 'Questions', icon: HelpCircle },
-  { href: '/exams', label: 'Exams', icon: BookOpen },
-  { href: '/settings', label: 'Settings', icon: Settings },
-];
-
-export const Sidebar: React.FC<SidebarProps> = ({ currentRoute }) => {
+function SidebarInner({ currentRoute }: SidebarProps) {
+  const { t } = useI18n();
   const { sidebarOpen, toggleSidebar, darkMode } = useUIStore();
+
+  const navItems = [
+    { href: '/dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard },
+    { href: '/questions', label: t('navigation.questions'), icon: HelpCircle },
+    { href: '/exams', label: t('navigation.exams'), icon: BookOpen },
+    { href: '/settings', label: t('navigation.settings'), icon: Settings },
+  ];
 
   return (
     <>
@@ -43,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentRoute }) => {
         } ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="flex lg:hidden justify-end p-4">
-          <button onClick={toggleSidebar} aria-label="Close sidebar">
+          <button onClick={toggleSidebar} aria-label={t('layout.toggleSidebar')}>
             <X size={24} />
           </button>
         </div>
@@ -81,5 +83,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentRoute }) => {
       </aside>
     </>
   );
-};
+}
 
+export const Sidebar: React.FC<SidebarProps> = SidebarInner;

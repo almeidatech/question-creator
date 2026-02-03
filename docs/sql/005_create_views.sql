@@ -52,12 +52,12 @@ CREATE OR REPLACE VIEW v_user_dashboard_stats AS
 SELECT
   u.id AS user_id,
   u.email,
-  u.name,
+  u.full_name,
   COUNT(DISTINCT uqh.id) AS total_questions_attempted,
   COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END) AS correct_answers,
   ROUND(
-    (COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END)::FLOAT /
-     NULLIF(COUNT(DISTINCT uqh.id), 0)) * 100, 2
+    100 * COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END)::NUMERIC /
+    NULLIF(COUNT(DISTINCT uqh.id), 0)::NUMERIC, 2
   ) AS accuracy_percentage,
   MAX(uqh.attempted_at) AS last_attempt_at,
   -- Study streak calculation (simplified)
@@ -70,7 +70,7 @@ SELECT
 FROM users u
 LEFT JOIN user_question_history uqh ON u.id = uqh.user_id
 WHERE u.is_active = TRUE
-GROUP BY u.id, u.email, u.name;
+GROUP BY u.id, u.email, u.full_name;
 
 -- ============================================================================
 -- VIEW 3: Weak Areas (Topics with < 50% accuracy)
@@ -84,8 +84,8 @@ SELECT
   COUNT(DISTINCT uqh.id) AS total_attempts,
   COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END) AS correct_attempts,
   ROUND(
-    (COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END)::FLOAT /
-     NULLIF(COUNT(DISTINCT uqh.id), 0)) * 100, 2
+    100 * COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END)::NUMERIC /
+    NULLIF(COUNT(DISTINCT uqh.id), 0)::NUMERIC, 2
   ) AS accuracy_percentage
 FROM user_question_history uqh
 JOIN questions q ON uqh.question_id = q.id
@@ -94,8 +94,8 @@ JOIN topics t ON qt.topic_id = t.id
 WHERE uqh.is_correct IS NOT NULL
 GROUP BY uqh.user_id, t.id, t.name
 HAVING ROUND(
-  (COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END)::FLOAT /
-   NULLIF(COUNT(DISTINCT uqh.id), 0)) * 100, 2
+  100 * COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END)::NUMERIC /
+  NULLIF(COUNT(DISTINCT uqh.id), 0)::NUMERIC, 2
 ) < 50;
 
 -- ============================================================================
@@ -111,7 +111,7 @@ SELECT
   qr.total_attempts,
   qr.correct_attempts,
   ROUND(
-    (qr.correct_attempts::FLOAT / NULLIF(qr.total_attempts, 0)) * 100, 2
+    100 * qr.correct_attempts::NUMERIC / NULLIF(qr.total_attempts, 0)::NUMERIC, 2
   ) AS success_rate,
   qr.problem_reports,
   qr.expert_validations,
@@ -142,8 +142,8 @@ SELECT
   COUNT(uea.id) AS total_questions,
   SUM(CASE WHEN uea.is_correct THEN 1 ELSE 0 END) AS correct_answers,
   ROUND(
-    (SUM(CASE WHEN uea.is_correct THEN 1 ELSE 0 END)::FLOAT /
-     NULLIF(COUNT(uea.id), 0)) * 100, 2
+    100 * SUM(CASE WHEN uea.is_correct THEN 1 ELSE 0 END)::NUMERIC /
+    NULLIF(COUNT(uea.id), 0)::NUMERIC, 2
   ) AS accuracy_percentage,
   ueat.score_percentage,
   ueat.passed,
@@ -214,7 +214,7 @@ SELECT
   e.title AS exam_name,
   u.id AS user_id,
   u.email,
-  u.name,
+  u.full_name,
   ueat.id AS attempt_id,
   ueat.started_at,
   e.time_limit_minutes,
@@ -242,13 +242,13 @@ SELECT
   s.name AS subject_name,
   d.name AS domain_name,
   COUNT(DISTINCT q.id) AS total_questions,
-  COUNT(DISTINCT CASE WHEN q.source = 'real_exam' THEN q.id END) AS real_exam_count,
-  COUNT(DISTINCT CASE WHEN q.source = 'ai_generated' THEN q.id END) AS ai_generated_count,
-  ROUND(AVG(qr.current_score), 2) AS avg_reputation,
+  COUNT(DISTINCT CASE WHEN q.source_type = 'real_exam' THEN q.id END) AS real_exam_count,
+  COUNT(DISTINCT CASE WHEN q.source_type = 'ai_generated' THEN q.id END) AS ai_generated_count,
+  ROUND(AVG(qr.current_score)::NUMERIC, 2) AS avg_reputation,
   COUNT(DISTINCT uqh.id) AS total_attempts,
   ROUND(
-    (COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END)::FLOAT /
-     NULLIF(COUNT(DISTINCT uqh.id), 0)) * 100, 2
+    100 * COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END)::NUMERIC /
+    NULLIF(COUNT(DISTINCT uqh.id), 0)::NUMERIC, 2
   ) AS avg_accuracy
 FROM topics t
 JOIN subjects s ON t.subject_id = s.id
@@ -267,7 +267,7 @@ CREATE OR REPLACE VIEW v_reviewer_workload AS
 SELECT
   u.id AS reviewer_id,
   u.email,
-  u.name,
+  u.full_name,
   COUNT(DISTINCT CASE WHEN qf.status = 'pending' THEN qf.id END) AS pending_reviews,
   COUNT(DISTINCT qr.id) AS completed_reviews,
   COUNT(DISTINCT CASE WHEN qr.decision = 'approve' THEN qr.id END) AS approved_count,
@@ -277,8 +277,8 @@ SELECT
 FROM users u
 LEFT JOIN question_feedback qf ON qf.status IN ('pending', 'under_review')
 LEFT JOIN question_reviews qr ON qf.question_id = qr.question_id AND qr.reviewer_id = u.id
-WHERE u.role = 'reviewer'
-GROUP BY u.id, u.email, u.name;
+WHERE u.user_role = 'reviewer'
+GROUP BY u.id, u.email, u.full_name;
 
 -- ============================================================================
 -- MATERIALIZED VIEW (for expensive queries)
@@ -292,8 +292,8 @@ SELECT
   COUNT(DISTINCT uqh.id) AS total_attempts,
   COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END) AS correct_answers,
   ROUND(
-    (COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END)::FLOAT /
-     NULLIF(COUNT(DISTINCT uqh.id), 0)) * 100, 2
+    100 * COUNT(DISTINCT CASE WHEN uqh.is_correct THEN uqh.id END)::NUMERIC /
+    NULLIF(COUNT(DISTINCT uqh.id), 0)::NUMERIC, 2
   ) AS platform_accuracy,
   COUNT(DISTINCT ueat.id) AS exams_taken,
   COUNT(DISTINCT CASE WHEN ueat.passed THEN ueat.id END) AS exams_passed

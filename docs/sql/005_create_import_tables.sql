@@ -62,8 +62,8 @@ ALTER TABLE question_imports ENABLE ROW LEVEL SECURITY;
 -- Policy: Only admins can see their own imports
 CREATE POLICY question_imports_admin_access ON question_imports
   FOR ALL
-  USING (admin_id = current_user_id())
-  WITH CHECK (admin_id = current_user_id());
+  USING (admin_id = auth.uid())
+  WITH CHECK (admin_id = auth.uid());
 
 -- Enable RLS on import_question_mapping table
 ALTER TABLE import_question_mapping ENABLE ROW LEVEL SECURITY;
@@ -73,7 +73,7 @@ CREATE POLICY import_question_mapping_isolation ON import_question_mapping
   FOR ALL
   USING (
     import_id IN (
-      SELECT id FROM question_imports WHERE admin_id = current_user_id()
+      SELECT id FROM question_imports WHERE admin_id = auth.uid()
     )
   );
 

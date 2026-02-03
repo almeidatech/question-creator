@@ -26,13 +26,15 @@ ALTER TABLE user_exam_answers ENABLE ROW LEVEL SECURITY;
 -- ============================================================================
 -- HELPER FUNCTION: Get current user ID
 -- ============================================================================
+-- NOTE: Creating in public schema (not auth) to avoid conflicts with Supabase
+-- auth.* schema is reserved for Supabase internal functions
 
-CREATE OR REPLACE FUNCTION auth.uid()
+CREATE OR REPLACE FUNCTION public.app_uid()
 RETURNS UUID AS $$
   SELECT current_setting('app.current_user_id')::uuid;
 $$ LANGUAGE SQL STABLE;
 
-CREATE OR REPLACE FUNCTION auth.user_role()
+CREATE OR REPLACE FUNCTION public.app_user_role()
 RETURNS VARCHAR AS $$
   SELECT current_setting('app.current_user_role', true)::varchar;
 $$ LANGUAGE SQL STABLE;
@@ -77,12 +79,12 @@ CREATE POLICY "Educators see active and under review" ON questions
   FOR SELECT
   USING (
     CASE
-      WHEN auth.user_role() = 'educator' THEN
+      WHEN public.app_user_role() = 'educator' THEN
         id IN (
           SELECT question_id FROM question_reputation
           WHERE status IN ('active', 'under_review')
         )
-      WHEN auth.user_role() = 'student' THEN
+      WHEN public.app_user_role() = 'student' THEN
         id IN (
           SELECT question_id FROM question_reputation
           WHERE status = 'active' AND current_score >= 5
@@ -95,7 +97,7 @@ CREATE POLICY "Educators see active and under review" ON questions
 CREATE POLICY "Admins and reviewers see all" ON questions
   FOR SELECT
   USING (
-    auth.user_role() IN ('admin', 'reviewer')
+    public.app_user_role() IN ('admin', 'reviewer')
   );
 
 -- Only system can insert questions
@@ -123,12 +125,12 @@ CREATE POLICY "System updates only" ON question_reputation
 -- Users can only see their own history
 CREATE POLICY "Users see own history" ON user_question_history
   FOR SELECT
-  USING (user_id = auth.uid());
+  USING (user_id = public.app_uid());
 
 -- Users can only insert for themselves
 CREATE POLICY "Users insert own history" ON user_question_history
   FOR INSERT
-  WITH CHECK (user_id = auth.uid());
+  WITH CHECK (user_id = public.app_uid());
 
 -- Users cannot update or delete history (append-only)
 CREATE POLICY "No updates to history" ON user_question_history
@@ -144,7 +146,7 @@ CREATE POLICY "Educators see student history" ON user_question_history
   FOR SELECT
   USING (
     CASE
-      WHEN auth.user_role() = 'educator' THEN
+      WHEN public.app_user_role() = 'educator' THEN
         user_id IN (
           -- Implement relationship between educators and students
           -- For now, educators see all (should be restricted in future)
@@ -157,7 +159,7 @@ CREATE POLICY "Educators see student history" ON user_question_history
 -- Admins can see all
 CREATE POLICY "Admins see all history" ON user_question_history
   FOR SELECT
-  USING (auth.user_role() = 'admin');
+  USING (public.app_user_role() = 'admin');
 
 -- ============================================================================
 -- QUESTION FEEDBACK TABLE
@@ -166,13 +168,13 @@ CREATE POLICY "Admins see all history" ON user_question_history
 -- Users can see their own feedback
 CREATE POLICY "Users see own feedback" ON question_feedback
   FOR SELECT
-  USING (user_id = auth.uid());
+  USING (user_id = public.app_uid());
 
 -- Users can insert feedback
 CREATE POLICY "Users submit feedback" ON question_feedback
   FOR INSERT
   WITH CHECK (
-    user_id = auth.uid()
+    user_id = public.app_uid()
     AND status = 'pending'
   );
 
@@ -181,7 +183,7 @@ CREATE POLICY "Reviewers see pending feedback" ON question_feedback
   FOR SELECT
   USING (
     CASE
-      WHEN auth.user_role() = 'reviewer' THEN
+      WHEN public.app_user_role() = 'reviewer' THEN
         status IN ('pending', 'under_review')
       ELSE FALSE
     END
@@ -190,14 +192,14 @@ CREATE POLICY "Reviewers see pending feedback" ON question_feedback
 -- Only reviewers can update feedback status
 CREATE POLICY "Reviewers update feedback" ON question_feedback
   FOR UPDATE
-  USING (auth.user_role() = 'reviewer')
-  WITH CHECK (auth.user_role() = 'reviewer');
+  USING (public.app_user_role() = 'reviewer')
+  WITH CHECK (public.app_user_role() = 'reviewer');
 
 -- Admins can see and update all
 CREATE POLICY "Admins manage feedback" ON question_feedback
   FOR ALL
-  USING (auth.user_role() = 'admin')
-  WITH CHECK (auth.user_role() = 'admin');
+  USING (public.app_user_role() = 'admin')
+  WITH CHECK (public.app_user_role() = 'admin');
 
 -- ============================================================================
 -- QUESTION REVIEWS TABLE
@@ -206,20 +208,20 @@ CREATE POLICY "Admins manage feedback" ON question_feedback
 -- Reviewers can see their reviews
 CREATE POLICY "Reviewers see own reviews" ON question_reviews
   FOR SELECT
-  USING (reviewer_id = auth.uid());
+  USING (reviewer_id = public.app_uid());
 
 -- Only reviewers can insert reviews
 CREATE POLICY "Only reviewers insert" ON question_reviews
   FOR INSERT
   WITH CHECK (
-    auth.user_role() = 'reviewer'
-    AND reviewer_id = auth.uid()
+    public.app_user_role() = 'reviewer'
+    AND reviewer_id = public.app_uid()
   );
 
 -- Admins can see all reviews
 CREATE POLICY "Admins see all reviews" ON question_reviews
   FOR SELECT
-  USING (auth.user_role() = 'admin');
+  USING (public.app_user_role() = 'admin');
 
 -- ============================================================================
 -- EXAMS TABLE
@@ -228,23 +230,23 @@ CREATE POLICY "Admins see all reviews" ON question_reviews
 -- Users can see exams they created
 CREATE POLICY "Users see own exams" ON exams
   FOR SELECT
-  USING (creator_id = auth.uid());
+  USING (creator_id = public.app_uid());
 
 -- Users can create exams
 CREATE POLICY "Users create exams" ON exams
   FOR INSERT
-  WITH CHECK (creator_id = auth.uid());
+  WITH CHECK (creator_id = public.app_uid());
 
 -- Users can update their own exams
 CREATE POLICY "Users update own exams" ON exams
   FOR UPDATE
-  USING (creator_id = auth.uid())
-  WITH CHECK (creator_id = auth.uid());
+  USING (creator_id = public.app_uid())
+  WITH CHECK (creator_id = public.app_uid());
 
 -- Admins can see all exams
 CREATE POLICY "Admins see all exams" ON exams
   FOR SELECT
-  USING (auth.user_role() = 'admin');
+  USING (public.app_user_role() = 'admin');
 
 -- ============================================================================
 -- EXAM QUESTIONS TABLE
@@ -255,7 +257,7 @@ CREATE POLICY "Users see exam questions" ON exam_questions
   FOR SELECT
   USING (
     exam_id IN (
-      SELECT id FROM exams WHERE creator_id = auth.uid()
+      SELECT id FROM exams WHERE creator_id = public.app_uid()
     )
   );
 
@@ -266,25 +268,25 @@ CREATE POLICY "Users see exam questions" ON exam_questions
 -- Users can see their own attempts
 CREATE POLICY "Users see own attempts" ON user_exam_attempts
   FOR SELECT
-  USING (user_id = auth.uid());
+  USING (user_id = public.app_uid());
 
 -- Users can create attempts
 CREATE POLICY "Users create attempts" ON user_exam_attempts
   FOR INSERT
-  WITH CHECK (user_id = auth.uid());
+  WITH CHECK (user_id = public.app_uid());
 
 -- Users can update their in-progress attempts
 CREATE POLICY "Users update own attempts" ON user_exam_attempts
   FOR UPDATE
-  USING (user_id = auth.uid() AND is_completed = FALSE)
-  WITH CHECK (user_id = auth.uid());
+  USING (user_id = public.app_uid() AND is_completed = FALSE)
+  WITH CHECK (user_id = public.app_uid());
 
 -- Educators can see their students' attempts
 CREATE POLICY "Educators see student attempts" ON user_exam_attempts
   FOR SELECT
   USING (
     CASE
-      WHEN auth.user_role() = 'educator' THEN
+      WHEN public.app_user_role() = 'educator' THEN
         user_id IN (SELECT id FROM users WHERE role = 'student')
       ELSE FALSE
     END
@@ -293,7 +295,7 @@ CREATE POLICY "Educators see student attempts" ON user_exam_attempts
 -- Admins can see all
 CREATE POLICY "Admins see all attempts" ON user_exam_attempts
   FOR SELECT
-  USING (auth.user_role() = 'admin');
+  USING (public.app_user_role() = 'admin');
 
 -- ============================================================================
 -- USER EXAM ANSWERS TABLE
@@ -304,7 +306,7 @@ CREATE POLICY "Users see own answers" ON user_exam_answers
   FOR SELECT
   USING (
     attempt_id IN (
-      SELECT id FROM user_exam_attempts WHERE user_id = auth.uid()
+      SELECT id FROM user_exam_attempts WHERE user_id = public.app_uid()
     )
   );
 
@@ -314,7 +316,7 @@ CREATE POLICY "Users insert own answers" ON user_exam_answers
   WITH CHECK (
     attempt_id IN (
       SELECT id FROM user_exam_attempts
-      WHERE user_id = auth.uid() AND is_completed = FALSE
+      WHERE user_id = public.app_uid() AND is_completed = FALSE
     )
   );
 
@@ -330,7 +332,7 @@ CREATE POLICY "No deletes from answers" ON user_exam_answers
 -- Admins can see all
 CREATE POLICY "Admins see all answers" ON user_exam_answers
   FOR SELECT
-  USING (auth.user_role() = 'admin');
+  USING (public.app_user_role() = 'admin');
 
 -- ============================================================================
 -- SUBSCRIPTIONS TABLE
@@ -339,12 +341,12 @@ CREATE POLICY "Admins see all answers" ON user_exam_answers
 -- Users can see their own subscription
 CREATE POLICY "Users see own subscription" ON subscriptions
   FOR SELECT
-  USING (user_id = auth.uid());
+  USING (user_id = public.app_uid());
 
 -- Admins can see all subscriptions
 CREATE POLICY "Admins see subscriptions" ON subscriptions
   FOR SELECT
-  USING (auth.user_role() = 'admin');
+  USING (public.app_user_role() = 'admin');
 
 -- ============================================================================
 -- USERS TABLE (Sensitive - Limited Access)
@@ -353,23 +355,23 @@ CREATE POLICY "Admins see subscriptions" ON subscriptions
 -- Users can see their own profile
 CREATE POLICY "Users see own profile" ON users
   FOR SELECT
-  USING (id = auth.uid());
+  USING (id = public.app_uid());
 
 -- Users cannot view other users
 CREATE POLICY "No cross-user viewing" ON users
   FOR SELECT
-  USING (id = auth.uid());
+  USING (id = public.app_uid());
 
 -- Users can update their own profile (email, name, etc.)
 CREATE POLICY "Users update own profile" ON users
   FOR UPDATE
-  USING (id = auth.uid())
-  WITH CHECK (id = auth.uid() AND role = (SELECT role FROM users WHERE id = auth.uid()));
+  USING (id = public.app_uid())
+  WITH CHECK (id = public.app_uid() AND role = (SELECT role FROM users WHERE id = public.app_uid()));
 
 -- Admins can see all users
 CREATE POLICY "Admins see all users" ON users
   FOR SELECT
-  USING (auth.user_role() = 'admin');
+  USING (public.app_user_role() = 'admin');
 
 -- ============================================================================
 -- HELPER: Set authentication context
@@ -378,7 +380,10 @@ CREATE POLICY "Admins see all users" ON users
 /*
 TO USE THESE POLICIES:
 
-Before running queries, set the auth context:
+Before running queries, set the auth context using the helper functions:
+
+  -- public.app_uid() reads from 'app.current_user_id'
+  -- public.app_user_role() reads from 'app.current_user_role'
 
   SET app.current_user_id = '<user-uuid>';
   SET app.current_user_role = 'student';
@@ -386,7 +391,7 @@ Before running queries, set the auth context:
   -- Or for admin:
   SET app.current_user_role = 'admin';
 
-Then all queries will respect RLS policies.
+Then all queries will respect RLS policies via public.app_uid() and public.app_user_role().
 
 EXAMPLE:
 

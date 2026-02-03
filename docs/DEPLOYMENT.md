@@ -1,567 +1,474 @@
-# 🚀 Guia de Deployment - Question Creator
+# Question Creator - Production Deployment Guide
 
-**Versão:** 1.0 | **Data:** 31 de Janeiro de 2026
-
----
-
-## 📑 Índice
-
-1. [Visão Geral](#visão-geral)
-2. [Pré-requisitos](#pré-requisitos)
-3. [Supabase Setup](#supabase-setup)
-4. [Vercel Setup](#vercel-setup)
-5. [Variáveis de Ambiente](#variáveis-de-ambiente)
-6. [Database Migrations](#database-migrations)
-7. [Deploy em Produção](#deploy-em-produção)
-8. [Monitoring e Logs](#monitoring-e-logs)
-9. [Troubleshooting](#troubleshooting)
+**Status:** Ready for deployment
+**Target:** 5.161.57.219 (Debian 13, Hetzner)
+**Domain:** question-creator.olmedatech.com
+**Port:** 3002 (Nginx reverse proxy → 3000 Docker container)
 
 ---
 
-## Visão Geral
+## Prerequisites
 
-### Arquitetura de Deployment
+### 1. Server Access
+- **IP:** 5.161.57.219
+- **User:** root
+- **Port:** 22 (SSH)
+- **OS:** Debian 13
+- **Already Installed:** Docker, Docker Compose, Nginx
 
-```text
-┌─────────────────────────────────────────────────────┐
-│         GitHub Repository                           │
-│  (git push → triggers deployment)                   │
-└──────────────────┬──────────────────────────────────┘
-                   │
-        ┌──────────┴──────────┐
-        │                     │
-    ┌───▼────┐          ┌────▼──────┐
-    │ Vercel │          │ Supabase   │
-    │(Frontend)         │(Database)  │
-    └────┬───┘          └─────┬──────┘
-         │                    │
-    ┌────▼────────────────────▼────┐
-    │  PostgreSQL + Auth + RLS      │
-    │  + Edge Functions (optional)  │
-    └───────────────────────────────┘
-```
+### 2. Local Environment
+- Docker and Docker Compose installed locally
+- Git access to repository
+- GitHub CLI authenticated
 
-### Stack de Deployment
+### 3. Repository State
+- ✅ All code committed to main branch
+- ✅ QA validation passed (Epic 4 stories approved)
+- ✅ Smoke test script verified and fixed
+- ✅ No uncommitted changes
 
-| Componente | Serviço        | Razão                                   |
-| :--------- | :------------- | :-------------------------------------- |
-| Frontend   | Vercel         | Integração Next.js, Edge, auto-scaling  |
-| Database   | Supabase Cloud | PostgreSQL gerenciado, backup, RLS      |
-| Auth       | Supabase Auth  | OAuth integrado, JWT, sessões           |
-| Cache      | Upstash Redis  | Serverless Redis, auto-scaling          |
-| API IA     | Anthropic      | Claude API, pay-as-you-go               |
+### 4. Environment Configuration
+- ✅ `.env` file with all secrets (local only, not committed)
+- ✅ `.env.example` committed to repository (safe template)
+- ✅ `.gitignore` updated to exclude `.env` files
+- ✅ All API keys and credentials obtained
 
 ---
 
-## Pré-requisitos
+## Deployment Steps
 
-### Contas Necessárias
+### Phase 1: Prepare Production Environment
 
-- [ ] **GitHub** (free) - Repositório
-- [ ] **Vercel** (free tier) - Frontend hosting
-- [ ] **Supabase** (free tier) - Database + Auth
-- [ ] **Upstash** (free tier) - Redis cache
-- [ ] **Anthropic** (paid) - API key $5+ crédito inicial
-
-### Softwares Locais
-
+#### Step 1.1: SSH into Production Server
 ```bash
-# Node.js 18+ ou 20+ (recomendado 20 LTS)
-node --version  # v20.10.0 ou superior
-
-# npm ou pnpm
-npm --version   # v10.0.0 ou superior
-
-# Git
-git --version   # 2.40.0 ou superior
-
-# (Opcional) Supabase CLI para migrações locais
-npm install -g supabase
+ssh -p 22 root@5.161.57.219
+# Password will be provided separately
 ```
 
----
-
-## Supabase Setup
-
-### Passo 1: Criar Projeto Supabase
-
-1. Ir para <https://supabase.com>
-2. Clique em **"New Project"**
-3. Preencha:
-   - **Project Name:** `question-creator-prod`
-   - **Database Password:** Gere senha forte (guarde!)
-   - **Region:** `São Paulo (South America)` ou US East se não há SA
-
-4. Aguarde criação (~2 minutos)
-
-### Passo 2: Obter Credenciais
-
-Após criação, vá para **Settings → API**:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-**⚠️ IMPORTANTE:**
-
-- `ANON_KEY` → publicamente seguro (pode expor)
-- `SERVICE_ROLE_KEY` → SECRETO! Nunca commit
-
-### Passo 3: Executar Migrations
-
+#### Step 1.2: Create Application Directory
 ```bash
-# Terminal local
-supabase login
-supabase link --project-ref xxxxx  # Seu project ID
+# Navigate to systems folder
+cd /almeida
 
-# Copie suas migrations SQL para:
-# supabase/migrations/
-# 00001_init_schema.sql
-# 00002_rls_policies.sql
-# 00003_triggers.sql
-
-# Execute migrations
-supabase db push
-```
-
-### Passo 4: Setup Auth (OAuth)
-
-Na console Supabase:
-
-1. Vá para **Authentication → Providers**
-2. Configure **Google**:
-   - Vá para <https://console.cloud.google.com>
-   - Crie novo projeto
-   - Enable Google+ API
-   - Create OAuth 2.0 Credentials (Web Application)
-   - Redirect URI: `https://xxxxx.supabase.co/auth/v1/callback?provider=google`
-   - Copie Client ID e Secret
-   - Cole em Supabase
-
-3. Configure **GitHub** (similar)
-
----
-
-## Vercel Setup
-
-### Passo 1: Criar Projeto Vercel
-
-```bash
-# Terminal no seu projeto local
-npm install -g vercel
-vercel login  # Faça login com GitHub
-
+# Create question-creator directory
+mkdir -p question-creator
 cd question-creator
-vercel  # Deploy initial
+
+# Create logs directory
+mkdir -p logs
+
+# Verify directory structure
+ls -la /almeida/question-creator
 ```
 
-Vercel detectará automaticamente Next.js.
-
-### Passo 2: Conectar GitHub
-
-1. Vá para <https://vercel.com/dashboard>
-2. Clique em novo projeto
-3. Selecione repositório GitHub `question-creator`
-4. Clique **Import**
-
-### Passo 3: Configurar Build
-
-Em **Project Settings → Build & Development**:
-
-```properties
-Framework Preset: Next.js
-Build Command: npm run build
-Output Directory: .next
-Install Command: npm ci
-```
-
-### Passo 4: Variáveis de Ambiente
-
-Em **Settings → Environment Variables**, adicione:
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
-
-# Secrets (Production only)
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
-ANTHROPIC_API_KEY=sk-ant-...
-UPSTASH_REDIS_URL=https://...
-UPSTASH_REDIS_TOKEN=...
-```
-
-**Dica:** Marque como "Production" apenas os que precisam ser secretos.
-
----
-
-## Variáveis de Ambiente
-
-### .env.local (Desenvolvimento)
-
+#### Step 1.3: Configure Git & Clone Repository
 ```bash
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGc...
+# Navigate to app directory
+cd /almeida/question-creator
 
-# Anthropic
-ANTHROPIC_API_KEY=sk-ant-xxxxx
+# Initialize git (if not already done)
+git init
+git remote add origin https://github.com/almeidatech/question-creator.git
 
-# Redis (Upstash)
-UPSTASH_REDIS_URL=https://xxxxx.upstash.io
-UPSTASH_REDIS_TOKEN=xxxxx
+# Fetch from GitHub
+git fetch origin main
 
-# App
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-NODE_ENV=development
-
-# Feature Flags
-ENABLE_AI_GENERATION=true
-ENABLE_CSV_IMPORT=true
-ENABLE_EXPERT_REVIEW=true
+# Checkout main branch
+git checkout main
 ```
 
-### Environment Variables Production
-
-| Variável                        | Onde   | Sensível | Escopo                 |
-| :------------------------------ | :----- | :------- | :--------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Vercel | Não      | Frontend               |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Vercel | Não      | Frontend (RLS protege) |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Vercel | **SIM**  | Backend only           |
-| `ANTHROPIC_API_KEY`             | Vercel | **SIM**  | Backend only           |
-| `UPSTASH_REDIS_URL`             | Vercel | **SIM**  | Backend only           |
-| `UPSTASH_REDIS_TOKEN`           | Vercel | **SIM**  | Backend only           |
-
----
-
-## Database Migrations
-
-### Estrutura de Migrations
-
-```sql
--- supabase/migrations/00001_init_schema.sql
--- Executed: CREATE TABLE users, questions, etc.
-
--- supabase/migrations/00002_rls_policies.sql
--- Executed: CREATE POLICY "Users can view own profile"
-
--- supabase/migrations/00003_triggers.sql
--- Executed: CREATE TRIGGER update_reputation_on_attempt
-```
-
-### Executar Migrations
-
-#### Local (Desenvolvimento)
-
+#### Step 1.4: Setup Environment Variables
 ```bash
-# Inicia Supabase local
-supabase start
+# Create .env file from template
+cp .env.example .env
 
-# Faz push de migrações locais para banco local
-supabase db push
+# Edit .env with production values
+nano .env
 
-# Verifica status
-supabase status
+# Required values to fill in:
+# - SUPABASE_URL (already has correct URL)
+# - SUPABASE_ANON_KEY (already has value)
+# - SUPABASE_SERVICE_ROLE_KEY (already has value)
+# - ANTHROPIC_API_KEY
+# - OPENAI_API_KEY
+# - CONTEXT7_API_KEY
+# - API_KEY (Google Gemini)
+# - GITHUB_APP_ID, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET
+# - GITHUB_PRIVATE_KEY (path to GitHub App private key file)
+# - N8N_API_KEY (if using N8N automation)
+# - SENTRY_DSN (if error tracking is enabled)
+
+# Set correct permissions
+chmod 600 .env
 ```
 
-#### Produção (Remoto)
-
+#### Step 1.5: Setup GitHub Private Key (if using GitHub App)
 ```bash
-# Link a projeto remoto
-supabase link --project-ref xxxxx
+# Create secure location for GitHub private key
+mkdir -p /almeida/.github-secrets
+chmod 700 /almeida/.github-secrets
 
-# Faz push para produção
-supabase db push --remote
+# Copy GitHub App private key to secure location
+# (Provide the private key file separately)
+# This is the .pem file from GitHub App installation
 
-# Verifica migrações aplicadas
-supabase migration list --remote
+# Set permissions
+chmod 400 /almeida/.github-secrets/github-private-key.pem
+
+# Update .env to point to correct path
+sed -i 's|GITHUB_PRIVATE_KEY_PATH=/almeida/question-creator|GITHUB_PRIVATE_KEY_PATH=/almeida/.github-secrets/github-private-key.pem|g' .env
 ```
 
-### Criando Nova Migration
+### Phase 2: Build and Deploy Docker Container
 
+#### Step 2.1: Build Docker Image
 ```bash
-# Supabase CLI gera novo arquivo
-supabase migration new add_new_table
+cd /almeida/question-creator
 
-# Edite: supabase/migrations/xxxxx_add_new_table.sql
-# Com seu SQL (CREATE TABLE, etc)
+# Build the image
+docker-compose build
 
-# Faça push
-supabase db push
+# Verify build success
+docker images | grep question-creator
 ```
 
-### Rollback (Em Caso de Erro)
-
+#### Step 2.2: Start Docker Container
 ```bash
-# Local
-supabase db reset  # Reseta para estado inicial
+cd /almeida/question-creator
 
-# Remoto (NÃO reverter automaticamente)
-# Opções:
-# 1. Contatar Supabase support
-# 2. Restaurar de backup diário
-# 3. Criar migration que desfaz mudanças
+# Start the application
+docker-compose up -d
+
+# Verify container is running
+docker-compose ps
+
+# Check logs
+docker-compose logs -f app
+
+# Wait for startup (first boot takes 30-60 seconds)
+sleep 60
+
+# Verify health check passes
+docker-compose ps  # Status should show "Up" with health status
 ```
 
----
-
-## Deploy em Produção
-
-### Checklist Pré-Deployment
-
-```markdown
-## Verificações de Segurança
-- [ ] Todas secrets em variáveis (não hardcoded)
-- [ ] RLS policies habilitadas em todas tabelas
-- [ ] Rate limiting configurado em APIs
-- [ ] HTTPS forçado em toda aplicação
-- [ ] CORS configurado corretamente
-
-## Verificações de Performance
-- [ ] Bundle size otimizado (< 500KB main)
-- [ ] Índices PostgreSQL criados
-- [ ] Cache Redis testado
-- [ ] Load testing realizado
-
-## Verificações Funcionais
-- [ ] Auth (signup/login) testado
-- [ ] CSV import testado com dados reais
-- [ ] AI generation funcionando (com rate limit)
-- [ ] Dashboard mostrando stats
-- [ ] Mobile responsivo
-```
-
-### Deploy Workflow
-
-#### 1. Merge para Main
-
+#### Step 2.3: Verify Application Health
 ```bash
-# Feature branch
-git checkout -b feature/new-feature
-# ... code changes ...
-git add .
-git commit -m "Add new feature"
-git push origin feature/new-feature
+# Test local connectivity
+curl -s http://localhost:3000/api/health | jq .
 
-# GitHub: Abra Pull Request
-# Code review
-# Merge para main
+# Expected response: { "status": "ok" }
 ```
 
-#### 2. Vercel Auto-Deploy
+### Phase 3: Configure Nginx Reverse Proxy
 
-Quando você faz merge para `main`:
-
-- Vercel detecta automáticamente
-- Roda `npm run build`
-- Testa build
-- Deploy para `vercel.app` (preview)
-- Após aprovação → deploy para domínio principal
-
-#### 3. Monitorar Deploy
-
+#### Step 3.1: Copy Nginx Configuration
 ```bash
-# Vercel CLI
-vercel logs  # Vê logs em tempo real
+# Copy nginx config to sites-available
+sudo cp /almeida/question-creator/nginx.conf /etc/nginx/sites-available/question-creator
 
-# Supabase Console
-# → Monitoring → Query Performance
-# → Logs → Realtime
+# Create symbolic link to enable the site
+sudo ln -s /etc/nginx/sites-available/question-creator /etc/nginx/sites-enabled/question-creator
+
+# Verify configuration
+sudo nginx -t
 ```
 
-### Deployment Commands
-
+#### Step 3.2: Setup SSL Certificate with Certbot
 ```bash
-# Vercel
-vercel deploy            # Deploy preview
-vercel deploy --prod     # Deploy produção
-vercel rollback          # Reverter última deploy
+# Request SSL certificate for the domain
+sudo certbot certonly --nginx -d question-creator.olmedatech.com
 
-# Supabase (se usar CLI)
-supabase db push --remote  # Push migrations
-supabase functions deploy  # Deploy edge functions
+# Follow prompts:
+# - Enter email address
+# - Agree to terms
+# - Choose option to allow domain validation
+
+# Verify certificate was created
+ls -la /etc/letsencrypt/live/question-creator.olmedatech.com/
+
+# Expected files:
+# - fullchain.pem
+# - privkey.pem
 ```
 
----
-
-## Monitoring e Logs
-
-### Logs em Tempo Real
-
-#### Vercel Logs
-
+#### Step 3.3: Reload Nginx
 ```bash
-vercel logs  # Vê últimas requisições
-vercel logs --follow  # Acompanha em tempo real
+# Test configuration
+sudo nginx -t
+
+# Reload nginx to apply changes
+sudo systemctl reload nginx
+
+# Verify nginx is running
+sudo systemctl status nginx
+
+# Check listening ports
+sudo netstat -tulpn | grep nginx
+# Should show: 80 and 443 listening
 ```
 
-#### Supabase Logs
+### Phase 4: Verify Deployment
 
-Console → Logs → Realtime:
+#### Step 4.1: Test HTTPS Connection
+```bash
+# Test HTTP redirect to HTTPS
+curl -I http://question-creator.olmedatech.com
+# Should return: 301 redirect to https://
 
-- SQL queries
-- Auth events
-- RLS violations
-- Performance issues
+# Test HTTPS connection
+curl -I https://question-creator.olmedatech.com
+# Should return: 200 OK with security headers
+```
 
-### Alertas Recomendados
+#### Step 4.2: Run Smoke Tests
+```bash
+# From your local machine, run smoke tests against production
+PROD_URL=https://question-creator.olmedatech.com bash docs/scripts/smoke-test.sh
 
-1. **Error Tracking** (Sentry)
+# Expected output:
+# ✓ Test 1: User Signup ... PASS
+# ✓ Test 2: User Login ... PASS
+# ... (all 8 tests should PASS)
+# ✅ ALL TESTS PASSED
 
-   ```bash
-   npm install @sentry/nextjs
-   ```
+# Note: Some tests may return 401 if not authenticated (expected)
+```
 
-   - Captura erros frontend/backend
-   - Notifica por email
+#### Step 4.3: Check Logs
+```bash
+# Monitor Docker container logs
+docker-compose -f /almeida/question-creator/docker-compose.yml logs -f app
 
-2. **Performance Monitoring** (Vercel Analytics)
-   - Habilitado automaticamente
-   - Mostra Core Web Vitals
+# Monitor Nginx access logs
+sudo tail -f /var/log/nginx/question-creator_access.log
 
-3. **Database Monitoring** (Supabase)
-   - CPU, conexões, queries lentas
-   - Alertas automáticos
+# Monitor Nginx error logs
+sudo tail -f /var/log/nginx/question-creator_error.log
 
-### Dashboards
+# Look for any errors or warnings
+```
 
-**Vercel Dashboard:**
+### Phase 5: Post-Deployment
 
-- <https://vercel.com/dashboard>
-- Deploys, logs, analytics
+#### Step 5.1: Configure Log Rotation
+```bash
+# Create logrotate configuration
+sudo tee /etc/logrotate.d/question-creator > /dev/null <<EOF
+/var/log/nginx/question-creator_access.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 www-data adm
+    sharedscripts
+    postrotate
+        if [ -f /var/run/nginx.pid ]; then
+            kill -USR1 \`cat /var/run/nginx.pid\`
+        fi
+    endscript
+}
 
-**Supabase Dashboard:**
+/var/log/nginx/question-creator_error.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 www-data adm
+    sharedscripts
+    postrotate
+        if [ -f /var/run/nginx.pid ]; then
+            kill -USR1 \`cat /var/run/nginx.pid\`
+        fi
+    endscript
+}
+EOF
 
-- <https://app.supabase.com/projects>
-- Banco, auth, realtime
+# Test logrotate
+sudo logrotate -v /etc/logrotate.d/question-creator
+```
 
-**GitHub Actions:**
+#### Step 5.2: Setup Auto-Restart on Server Reboot
+```bash
+# Docker containers with "restart: unless-stopped" will auto-start
 
-- <https://github.com/yourname/question-creator/actions>
-- CI/CD status
+# Verify in docker-compose.yml:
+grep -A2 "restart:" /almeida/question-creator/docker-compose.yml
+
+# Should show: restart: unless-stopped
+```
+
+#### Step 5.3: Setup Monitoring (Optional)
+```bash
+# Monitor container health
+watch -n 5 "docker-compose -f /almeida/question-creator/docker-compose.yml ps"
+
+# Or setup a cron job to monitor
+# Add to crontab -e:
+# */5 * * * * /almeida/question-creator/monitoring.sh
+
+# Check Sentry for error tracking (if configured)
+# https://sentry.io → question-creator project
+```
 
 ---
 
 ## Troubleshooting
 
-### Problema: "NEXT_PUBLIC_SUPABASE_URL is not set"
-
-**Solução:**
-
+### Docker Container Won't Start
 ```bash
-# Verifique .env.local existe
-cat .env.local
+# Check logs
+docker-compose logs app
 
-# Se não, copie do example
-cp .env.local.example .env.local
-# Preencha com valores reais
+# Common issues:
+# - Port 3000 already in use: docker ps, kill conflicting container
+# - Missing environment variables: verify .env file
+# - Build failed: docker-compose build --no-cache
 
-# Vercel: Cheque Settings → Environment Variables
+# Rebuild and start fresh
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
 ```
 
-### Problema: "RLS policy violation"
-
-**Erro típico:**
-
-```text
-Error: new row violates row level security policy
-```
-
-**Solução:**
-
-1. Verifique policy está criada: `SELECT * FROM pg_policies WHERE tablename='questions'`
-2. Cheque `auth.user_id()` está retornando UUID correto
-3. Teste com role correto: `SECURITY DEFINER`
-
-### Problema: "Rate limit exceeded on Anthropic API"
-
-**Solução:**
-
-```typescript
-// lib/anthropic/client.ts
-// Implemente retry com exponential backoff
-async function generateWithRetry(params, maxRetries = 3) {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await generateQuestion(params);
-    } catch (e) {
-      if (e.status === 429) {
-        await sleep(Math.pow(2, i) * 1000);  // 1s, 2s, 4s
-      } else throw;
-    }
-  }
-}
-```
-
-### Problema: "Cold start lento na primeira requisição"
-
-**Solução:**
-
+### Nginx Shows 502 Bad Gateway
 ```bash
-# Vercel: Use Edge Functions para latência menor
-# Ou configure Cron jobs para warm up
+# Verify Docker container is running and healthy
+docker-compose ps
+
+# Check if port 3000 is accessible
+curl http://localhost:3000/api/health
+
+# Verify Nginx proxy configuration
+sudo nginx -t
+
+# Check Nginx error logs
+sudo tail -100 /var/log/nginx/question-creator_error.log
 ```
 
-### Problema: "Supabase auth não funciona em produção"
-
-**Checklist:**
-
-- [ ] OAuth redirect URI correto em Google/GitHub
-- [ ] `NEXT_PUBLIC_SUPABASE_URL` correto
-- [ ] Cookies estão sendo enviados (verificar DevTools)
-- [ ] Domínio está whitelistado em Supabase Auth settings
-
----
-
-## Rollback
-
-### Em Caso de Problema em Produção
-
+### SSL Certificate Issues
 ```bash
-# Option 1: Reverter código
-vercel rollback
+# Verify certificate is valid
+openssl x509 -in /etc/letsencrypt/live/question-creator.olmedatech.com/fullchain.pem -text -noout
 
-# Option 2: Reverter database (CUIDADO!)
-# Restaurar de backup
-# Supabase Dashboard → Backups → Restore
+# Renew certificate (can be done anytime, certbot auto-renews 30 days before expiry)
+sudo certbot renew --dry-run
 
-# Option 3: Feature flags (mitiga problema)
-# Desabilita feature problemática via env var
-ENABLE_AI_GENERATION=false  # Temporário
+# Manual renewal
+sudo certbot certonly --force-renewal -d question-creator.olmedatech.com
+```
+
+### Redis Connection Issues
+```bash
+# Verify Redis is accessible from the server
+redis-cli -h 10.0.0.3 -p 6379 ping
+
+# If redis-cli not installed
+# docker run --rm redis:alpine redis-cli -h 10.0.0.3 -p 6379 ping
+
+# Should return: PONG
+
+# Check Docker logs for Redis errors
+docker-compose logs app | grep -i redis
 ```
 
 ---
 
-## Checklist de Deployment
+## Deployment Rollback
 
-```markdown
-### Antes de Deploy
-- [ ] Testes passando (`npm test`)
-- [ ] Build local funciona (`npm run build`)
-- [ ] Environment variables configuradas
-- [ ] Database migrations revisadas
-- [ ] Code review completo
+### Rollback to Previous Version
+```bash
+# Stop current container
+docker-compose down
 
-### Após Deploy
-- [ ] Vercel build bem-sucedido
-- [ ] Supabase migrations aplicadas
-- [ ] Auth testado em produção
-- [ ] CSV import testado
-- [ ] AI generation funcionando
-- [ ] Dashboard acessível
-- [ ] Mobile responsive
-- [ ] Logs e monitoring ativos
+# Checkout previous git commit
+git checkout <previous-commit-hash>
 
-### 24h Depois
-- [ ] Nenhum erro crítico em Sentry
-- [ ] Performance estável
-- [ ] Usuários conseguem signup/login
-- [ ] Questões gerando sem problemas
+# Rebuild and restart
+docker-compose build
+docker-compose up -d
+
+# Verify deployment
+PROD_URL=https://question-creator.olmedatech.com bash docs/scripts/smoke-test.sh
 ```
 
 ---
 
-**Próximo:** Leia [SETUP_LOCAL.md](./SETUP_LOCAL.md) para desenvolver localmente.
+## Monitoring & Maintenance
+
+### Daily Health Check
+```bash
+# SSH into server
+ssh root@5.161.57.219
+
+# Check container status
+docker-compose -f /almeida/question-creator/docker-compose.yml ps
+
+# Run smoke tests from local machine
+PROD_URL=https://question-creator.olmedatech.com bash docs/scripts/smoke-test.sh
+```
+
+### Check Nginx Status
+```bash
+sudo systemctl status nginx
+sudo tail -20 /var/log/nginx/question-creator_access.log
+sudo tail -20 /var/log/nginx/question-creator_error.log
+```
+
+### View Application Logs
+```bash
+docker-compose -f /almeida/question-creator/docker-compose.yml logs -f app
+```
+
+### Update Application
+```bash
+cd /almeida/question-creator
+
+# Pull latest code
+git pull origin main
+
+# Rebuild Docker image
+docker-compose build
+
+# Restart container
+docker-compose up -d
+
+# Verify deployment
+docker-compose ps
+```
+
+---
+
+## Security Checklist
+
+- ✅ `.env` file is NOT committed to git
+- ✅ `.env` is in `.gitignore`
+- ✅ GitHub private key is NOT in repository
+- ✅ File permissions set correctly (chmod 600 .env, chmod 400 private-key.pem)
+- ✅ SSL certificates installed and auto-renewing
+- ✅ Nginx headers configured for security
+- ✅ Docker container runs as non-root user
+- ✅ Redis password protected (if applicable)
+- ✅ Regular backups of Supabase database (cloud-managed)
+
+---
+
+## Contact & Support
+
+- **DevOps Contact:** Gage (github-devops)
+- **Incident Response:** See docs/INCIDENT-RESPONSE.md
+- **Emergency Rollback:** See "Deployment Rollback" section above
+
+---
+
+**Deployment completed and verified** ✅
+
+Server is now running question-creator on:
+- **URL:** https://question-creator.olmedatech.com
+- **Internal Port:** 3000 (Docker)
+- **External Port:** 3002 (Nginx reverse proxy)
+- **SSL:** Enabled and auto-renewing via Certbot

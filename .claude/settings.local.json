@@ -28,7 +28,16 @@
       "Bash(tee:*)",
       "Bash(move \"d:\\\\question-creator\\\\src\\\\pages\\\\api\\\\exams\\\\__tests__\" \"d:\\\\question-creator\\\\src\\\\__tests__\\\\api\\\\exams\")",
       "Bash(git pull:*)",
-      "Bash(set NODE_OPTIONS=--max-old-space-size=4096:*)"
+      "Bash(set NODE_OPTIONS=--max-old-space-size=4096:*)",
+      "Bash(if [ -f .env.local ])",
+      "Bash(then echo \"✓ .env.local encontrado\")",
+      "Bash(else echo \"⚠ .env.local não encontrado\")",
+      "Bash(fi)",
+      "Bash(supabase status:*)",
+      "Bash(claude mcp add:*)",
+      "Bash(SUPABASE_SERVICE_KEY=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzZ2lkc3R3aXN3ZHB0YWxjcWJ0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTI4MjQ1OCwiZXhwIjoyMDg0ODU4NDU4fQ.SDLyvltHFkHFfhGWab1k7R2UydE6Qweu4lEtVesjnHw\" node:*)",
+      "Bash(supabase:*)",
+      "Bash(psql:*)"
     ]
   }
 }

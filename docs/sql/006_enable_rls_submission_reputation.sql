@@ -29,11 +29,11 @@ ALTER TABLE question_reviews ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY submission_isolation_select ON user_question_history
   FOR SELECT
-  USING (user_id = auth.uid());
+  USING (user_id = public.app_uid());
 
 CREATE POLICY submission_isolation_insert ON user_question_history
   FOR INSERT
-  WITH CHECK (user_id = auth.uid());
+  WITH CHECK (user_id = public.app_uid());
 
 -- Prevent updates to history (immutable audit trail)
 CREATE POLICY submission_no_update ON user_question_history
@@ -54,19 +54,19 @@ CREATE POLICY submission_no_delete ON user_question_history
 CREATE POLICY admin_review_access_select ON question_reviews
   FOR SELECT
   USING (
-    (SELECT user_role FROM users WHERE id = auth.uid()) = 'admin'
+    (SELECT user_role FROM users WHERE id = public.app_uid()) = 'admin'
   );
 
 CREATE POLICY admin_review_access_insert ON question_reviews
   FOR INSERT
   WITH CHECK (
-    (SELECT user_role FROM users WHERE id = auth.uid()) = 'admin'
+    (SELECT user_role FROM users WHERE id = public.app_uid()) = 'admin'
   );
 
 CREATE POLICY admin_review_access_update ON question_reviews
   FOR UPDATE
   USING (
-    (SELECT user_role FROM users WHERE id = auth.uid()) = 'admin'
+    (SELECT user_role FROM users WHERE id = public.app_uid()) = 'admin'
   );
 
 -- ============================================================================
@@ -80,19 +80,19 @@ CREATE POLICY feedback_isolation_select ON question_feedback
   FOR SELECT
   USING (
     -- Own feedback
-    user_id = auth.uid()
+    user_id = public.app_uid()
     -- Or admin/reviewer
-    OR (SELECT user_role FROM users WHERE id = auth.uid()) IN ('admin', 'reviewer')
+    OR (SELECT user_role FROM users WHERE id = public.app_uid()) IN ('admin', 'reviewer')
   );
 
 CREATE POLICY feedback_isolation_insert ON question_feedback
   FOR INSERT
-  WITH CHECK (user_id = auth.uid());
+  WITH CHECK (user_id = public.app_uid());
 
 CREATE POLICY feedback_reviewer_update ON question_feedback
   FOR UPDATE
   USING (
-    (SELECT user_role FROM users WHERE id = auth.uid()) IN ('admin', 'reviewer')
+    (SELECT user_role FROM users WHERE id = public.app_uid()) IN ('admin', 'reviewer')
   );
 
 -- ============================================================================
@@ -124,7 +124,7 @@ CREATE POLICY reputation_no_direct_update ON question_reputation
 /*
 -- Test submission isolation
 SELECT * FROM user_question_history
-WHERE user_id = auth.uid();
+WHERE user_id = public.app_uid();
 -- Should return only current user's submissions
 
 -- Test admin review access (as non-admin)
@@ -138,7 +138,7 @@ SELECT * FROM question_reviews;
 
 -- Test feedback submission
 INSERT INTO question_feedback (question_id, user_id, category, feedback_text)
-VALUES ('q-uuid', auth.uid(), 'wrong_answer', 'Test feedback');
+VALUES ('q-uuid', public.app_uid(), 'wrong_answer', 'Test feedback');
 -- Should succeed
 
 INSERT INTO question_feedback (question_id, user_id, category, feedback_text)
@@ -148,11 +148,11 @@ VALUES ('q-uuid', 'different-user-uuid', 'wrong_answer', 'Test feedback');
 -- Test immutable history
 UPDATE user_question_history
 SET is_correct = true
-WHERE user_id = auth.uid();
+WHERE user_id = public.app_uid();
 -- Should fail with: "new row violates row-level security policy"
 
 DELETE FROM user_question_history
-WHERE user_id = auth.uid();
+WHERE user_id = public.app_uid();
 -- Should fail with: "new row violates row-level security policy"
 */
 

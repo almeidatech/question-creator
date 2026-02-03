@@ -42,11 +42,11 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_record_id ON audit_log(record_id) WHERE
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY DEFAULT auth.uid(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email VARCHAR(255) NOT NULL UNIQUE,
   full_name VARCHAR(255),
   user_role VARCHAR(20) DEFAULT 'student'
-    CHECK (role IN ('student', 'educator', 'reviewer', 'admin')),
+    CHECK (user_role IN ('student', 'educator', 'reviewer', 'admin')),
   subscription_tier VARCHAR(50) DEFAULT 'free'
     CHECK (subscription_tier IN ('free', 'premium', 'institutional')),
   avatar_url TEXT,

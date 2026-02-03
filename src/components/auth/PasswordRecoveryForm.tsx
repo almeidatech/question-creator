@@ -66,7 +66,7 @@ export const PasswordRecoveryForm: React.FC<PasswordRecoveryFormProps> = ({ onSu
       });
 
       if (!response.ok) {
-        throw new Error('Failed to reset password');
+        throw new Error(t('messages.failedToResetPassword'));
       }
 
       onSuccess?.();

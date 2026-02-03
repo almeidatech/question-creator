@@ -70,7 +70,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Signup failed');
+        throw new Error(t('messages.signupFailed'));
       }
 
       const result = await response.json();
@@ -180,7 +180,7 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
                 ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700'
                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
-            aria-label={showConfirm ? 'Hide password' : 'Show password'}
+            aria-label={showConfirm ? t('auth.hidePassword') : t('auth.showPassword')}
           >
             {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>

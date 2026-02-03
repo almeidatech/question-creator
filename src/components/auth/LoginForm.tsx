@@ -54,8 +54,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       });
 
       if (!response.ok) {
-        setSubmitError(t('validation.emailInvalid'));
-        throw new Error('Invalid credentials');
+        setSubmitError(t('messages.invalidCredentials'));
+        throw new Error(t('messages.invalidCredentials'));
       }
 
       const result = await response.json();

@@ -17,6 +17,8 @@ interface Answer {
   correct_answer_index: number;
   is_correct: boolean;
   time_spent_seconds: number;
+  topic?: string; // Topic for weak area tracking
+  subject_id?: string; // Alternative topic field
 }
 
 interface ExamResults {
@@ -50,8 +52,8 @@ const calculateTopicStats = (answers: Answer[]): Record<string, TopicBreakdown> 
   const stats: Record<string, TopicBreakdown> = {};
 
   answers.forEach(answer => {
-    // Extract topic from question (would come from full question data in production)
-    const topic = 'General';
+    // Extract topic from answer data
+    const topic = answer.topic || answer.subject_id || 'General';
 
     if (!stats[topic]) {
       stats[topic] = {

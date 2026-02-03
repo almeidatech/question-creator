@@ -7,8 +7,11 @@ describe('Header', () => {
   const mockUser = {
     id: '1',
     email: 'test@example.com',
-    first_name: 'John',
-    last_name: 'Doe',
+    full_name: 'John Doe',
+    user_role: 'student',
+    subscription_tier: 'free',
+    avatar_url: null,
+    is_active: true,
   };
 
   const mockLogout = vi.fn();

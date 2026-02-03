@@ -12,6 +12,7 @@ import {
   ExamListItem,
   ExamResponse,
 } from '@/schemas/exam.schema';
+import { transformDBQuestionToUI } from '@/lib/transformers/question';
 
 interface ExamQueryFilters {
   status?: ExamStatus;
@@ -343,8 +344,15 @@ export async function getExamDetails(
         order_index,
         questions (
           id,
-          text,
-          options
+          question_text,
+          option_a,
+          option_b,
+          option_c,
+          option_d,
+          option_e,
+          correct_answer,
+          difficulty,
+          subject_id
         )
       `
       )
@@ -360,16 +368,32 @@ export async function getExamDetails(
       };
     }
 
-    // Format questions
-    const formattedQuestions = (examQuestions || []).map((eq: any) => ({
-      question_id: eq.questions.id,
-      text: eq.questions.text,
-      options: eq.questions.options || [],
-      order: eq.order_index,
-    }));
+    // Format questions using transformer
+    const formattedQuestions = (examQuestions || []).map((eq: any) => {
+      const uiQuestion = transformDBQuestionToUI(eq.questions);
+      return {
+        question_id: uiQuestion.id,
+        text: uiQuestion.text,
+        options: uiQuestion.options,
+        correct_answer_index: uiQuestion.correct_answer_index,
+        difficulty: uiQuestion.difficulty,
+        order: eq.order_index,
+      };
+    });
 
-    // TODO: Get attempt history when exam_attempts table is created
-    const attempts: any[] = [];
+    // Get attempt history from user_exam_attempts
+    const { data: attemptsData, error: attemptsError } = await client
+      .from('user_exam_attempts')
+      .select('id, started_at, is_completed')
+      .eq('exam_id', examId)
+      .eq('user_id', userId)
+      .order('started_at', { ascending: false });
+
+    const attempts = (attemptsData || []).map(att => ({
+      attempt_id: att.id,
+      attempted_at: att.started_at,
+      score: undefined, // Score would be calculated/stored if completed
+    }));
 
     return {
       success: true,
@@ -430,11 +454,14 @@ export async function updateExam(
       };
     }
 
-    // TODO: Check if attempt is in progress when exam_attempts table is created
-    // For now, skip this check as the table doesn't exist yet
-    const attemptInProgress = false;
+    // Check if attempt is in progress
+    const { count: inProgressCount } = await client
+      .from('user_exam_attempts')
+      .select('*', { count: 'exact' })
+      .eq('exam_id', examId)
+      .eq('is_completed', false);
 
-    if (attemptInProgress) {
+    if ((inProgressCount || 0) > 0) {
       return {
         success: false,
         error: 'Cannot update exam while an attempt is in progress',

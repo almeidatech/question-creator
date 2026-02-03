@@ -9,24 +9,22 @@ import { CheckCircle, XCircle, ChevronRight } from 'lucide-react';
 export interface Question {
   id: string;
   text: string;
-  options: {
-    a: string;
-    b: string;
-    c: string;
-    d: string;
-  };
-  correct_answer: 'a' | 'b' | 'c' | 'd';
+  options: string[];
+  correct_answer_index?: number; // 0-3 for a-d
+  correct_answer?: 'a' | 'b' | 'c' | 'd'; // Legacy support
   explanation: string;
+  difficulty?: string;
+  topic?: string;
 }
 
 interface QuestionCardProps {
   question: Question;
-  onSubmit: (selectedOption: 'a' | 'b' | 'c' | 'd') => void;
+  onSubmit: (selectedOption: number) => void; // Changed to index-based
   onNext: () => void;
   isLoading?: boolean;
 }
 
-type OptionKey = 'a' | 'b' | 'c' | 'd';
+type OptionIndex = 0 | 1 | 2 | 3;
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
@@ -36,14 +34,19 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 }) => {
   const { t } = useI18n();
   const { darkMode } = useUIStore();
-  const [selectedOption, setSelectedOption] = useState<OptionKey | null>(null);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  const handleSubmit = () => {
-    if (!selectedOption) return;
+  // Determine correct answer index
+  const correctAnswerIndex =
+    question.correct_answer_index ??
+    (question.correct_answer ? ['a', 'b', 'c', 'd'].indexOf(question.correct_answer) : 0);
 
-    const correct = selectedOption === question.correct_answer;
+  const handleSubmit = () => {
+    if (selectedOption === null) return;
+
+    const correct = selectedOption === correctAnswerIndex;
     setIsCorrect(correct);
     setSubmitted(true);
     onSubmit(selectedOption);
@@ -56,12 +59,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     onNext();
   };
 
-  const optionLabels: Record<OptionKey, string> = {
-    a: 'A',
-    b: 'B',
-    c: 'C',
-    d: 'D',
-  };
+  const optionLabels = ['A', 'B', 'C', 'D'];
 
   return (
     <div
@@ -79,10 +77,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
       {/* Options */}
       <div className="space-y-3 mb-6">
-        {(Object.keys(question.options) as OptionKey[]).map((option) => {
-          const isSelected = selectedOption === option;
+        {question.options.map((optionText, index) => {
+          const isSelected = selectedOption === index;
           const isAnswerRevealed = submitted;
-          const isCorrectOption = option === question.correct_answer;
+          const isCorrectOption = index === correctAnswerIndex;
 
           let bgColor = '';
           if (!isAnswerRevealed) {
@@ -111,8 +109,8 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
           return (
             <button
-              key={option}
-              onClick={() => !submitted && setSelectedOption(option)}
+              key={index}
+              onClick={() => !submitted && setSelectedOption(index)}
               disabled={submitted || isLoading}
               className={`w-full p-4 rounded-lg border-2 transition-all text-left flex items-start gap-3 ${bgColor} disabled:cursor-not-allowed`}
             >
@@ -127,10 +125,10 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
                       : 'border-gray-400 text-gray-600'
                 }`}
               >
-                {optionLabels[option]}
+                {optionLabels[index]}
               </div>
               <div className="flex-1">
-                <p className="font-medium">{question.options[option]}</p>
+                <p className="font-medium">{optionText}</p>
               </div>
               {isAnswerRevealed && isCorrectOption && (
                 <CheckCircle size={24} className="text-green-500 shrink-0 mt-1" />

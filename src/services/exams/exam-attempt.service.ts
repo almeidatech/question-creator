@@ -14,6 +14,9 @@ import {
   WeakArea,
   AnswerDetail,
 } from '@/schemas/exam-attempt.schema';
+import {
+  convertCorrectAnswerLetterToIndex,
+} from '@/lib/transformers/question';
 
 // ============================================================================
 // START ATTEMPT
@@ -80,12 +83,12 @@ export async function startExamAttempt(
     const result = await withAdvisoryLock(lockId, async () => {
       // Create attempt record
       const { data: attemptData, error: attemptError } = await client
-        .from('exam_attempts')
+        .from('user_exam_attempts')
         .insert([
           {
             exam_id: examId,
             user_id: userId,
-            status: 'in_progress',
+            is_completed: false,
             started_at: new Date().toISOString(),
           },
         ])
@@ -158,8 +161,8 @@ export async function submitAnswer(
 
     // Validate attempt exists and belongs to user
     const { data: attemptData, error: attemptError } = await client
-      .from('exam_attempts')
-      .select('id, exam_id, status')
+      .from('user_exam_attempts')
+      .select('id, exam_id, is_completed')
       .eq('id', attemptId)
       .eq('user_id', userId)
       .single();
@@ -173,7 +176,7 @@ export async function submitAnswer(
     }
 
     // Verify attempt is still in progress
-    if (attemptData.status !== 'in_progress') {
+    if (attemptData.is_completed) {
       return {
         success: false,
         error: 'Attempt is not in progress',
@@ -184,7 +187,7 @@ export async function submitAnswer(
     // Validate question exists and is in exam
     const { data: questionData, error: questionError } = await client
       .from('exam_questions')
-      .select('questions(id, options)')
+      .select('questions(id, option_a, option_b, option_c, option_d, option_e)')
       .eq('exam_id', attemptData.exam_id)
       .eq('question_id', input.question_id)
       .single();
@@ -199,7 +202,14 @@ export async function submitAnswer(
 
     // Validate option index is valid
     const questions = questionData.questions as any;
-    const options = (Array.isArray(questions) ? questions[0]?.options : questions?.options) || [];
+    const questionRecord = Array.isArray(questions) ? questions[0] : questions;
+    const options = [
+      questionRecord?.option_a,
+      questionRecord?.option_b,
+      questionRecord?.option_c,
+      questionRecord?.option_d,
+      questionRecord?.option_e,
+    ].filter(Boolean);
     if (input.selected_option_index < 0 || input.selected_option_index >= options.length) {
       return {
         success: false,
@@ -214,7 +224,7 @@ export async function submitAnswer(
     const result = await withAdvisoryLock(lockId, async () => {
       // Check if already answered
       const { data: existingAnswer, error: checkError } = await client
-        .from('exam_answers')
+        .from('user_exam_answers')
         .select('id')
         .eq('attempt_id', attemptId)
         .eq('question_id', input.question_id)
@@ -228,10 +238,10 @@ export async function submitAnswer(
         };
       }
 
-      // Get correct answer index from question
+      // Get correct answer from question
       const { data: fullQuestion, error: fullQuestionError } = await client
         .from('questions')
-        .select('correct_option_index')
+        .select('correct_answer')
         .eq('id', input.question_id)
         .single();
 
@@ -243,19 +253,22 @@ export async function submitAnswer(
         };
       }
 
-      const isCorrect = input.selected_option_index === fullQuestion.correct_option_index;
+      // Convert correct_answer letter to index for comparison
+      const correctAnswerIndex = convertCorrectAnswerLetterToIndex(
+        fullQuestion.correct_answer
+      );
+      const isCorrect = input.selected_option_index === correctAnswerIndex;
 
       // Record answer
       const { error: insertError } = await client
-        .from('exam_answers')
+        .from('user_exam_answers')
         .insert([
           {
             attempt_id: attemptId,
             question_id: input.question_id,
-            selected_option_index: input.selected_option_index,
+            selected_answer: input.selected_option_index.toString(),
             is_correct: isCorrect,
-            time_spent_seconds: timeSpentSeconds || null,
-            answered_at: new Date().toISOString(),
+            created_at: new Date().toISOString(),
           },
         ]);
 
@@ -284,7 +297,7 @@ export async function submitAnswer(
           .select('id', { count: 'exact', head: true })
           .eq('exam_id', attemptData.exam_id),
         client
-          .from('exam_answers')
+          .from('user_exam_answers')
           .select('id', { count: 'exact', head: true })
           .eq('attempt_id', attemptId),
       ]);
@@ -344,8 +357,8 @@ export async function completeExamAttempt(
 
     // Validate attempt exists and belongs to user
     const { data: attemptData, error: attemptError } = await client
-      .from('exam_attempts')
-      .select('id, exam_id, status')
+      .from('user_exam_attempts')
+      .select('id, exam_id, is_completed')
       .eq('id', attemptId)
       .eq('user_id', userId)
       .single();
@@ -359,7 +372,7 @@ export async function completeExamAttempt(
     }
 
     // Verify attempt is in progress
-    if (attemptData.status !== 'in_progress') {
+    if (attemptData.is_completed) {
       return {
         success: false,
         error: 'Attempt is not in progress',
@@ -392,12 +405,10 @@ export async function completeExamAttempt(
       // Update attempt with completion data
       const completedAt = new Date().toISOString();
       const { error: updateError } = await client
-        .from('exam_attempts')
+        .from('user_exam_attempts')
         .update({
-          status: 'completed',
+          is_completed: true,
           completed_at: completedAt,
-          score: score,
-          passing: passing,
         })
         .eq('id', attemptId);
 
@@ -406,27 +417,6 @@ export async function completeExamAttempt(
         return {
           success: false,
           error: 'Failed to complete attempt',
-          statusCode: 500,
-        };
-      }
-
-      // Store results
-      const { error: resultError } = await client
-        .from('exam_results')
-        .insert([
-          {
-            attempt_id: attemptId,
-            score: score,
-            passing: passing,
-            weak_areas: weak_areas,
-          },
-        ]);
-
-      if (resultError) {
-        console.error('Error storing results:', resultError);
-        return {
-          success: false,
-          error: 'Failed to store exam results',
           statusCode: 500,
         };
       }
@@ -484,8 +474,8 @@ export async function getAttemptDetails(
 
     // Get attempt
     const { data: attemptData, error: attemptError } = await client
-      .from('exam_attempts')
-      .select('id, exam_id, status, started_at, completed_at, score')
+      .from('user_exam_attempts')
+      .select('id, exam_id, is_completed, started_at, completed_at')
       .eq('id', attemptId)
       .eq('user_id', userId)
       .single();
@@ -500,20 +490,19 @@ export async function getAttemptDetails(
 
     // Get all answers with question details
     const { data: answersData, error: answersError } = await client
-      .from('exam_answers')
+      .from('user_exam_answers')
       .select(
         `
         id,
         question_id,
-        selected_option_index,
+        selected_answer,
         is_correct,
-        time_spent_seconds,
-        answered_at,
-        questions(id, text, correct_option_index)
+        created_at,
+        questions(id, question_text, correct_answer, subject_id)
       `
       )
       .eq('attempt_id', attemptId)
-      .order('answered_at', { ascending: true });
+      .order('created_at', { ascending: true });
 
     if (answersError) {
       console.error('Error fetching answers:', answersError);
@@ -525,14 +514,20 @@ export async function getAttemptDetails(
     }
 
     // Format answers
-    const formattedAnswers: AnswerDetail[] = (answersData || []).map((answer: any) => ({
-      question_id: answer.question_id,
-      question_text: answer.questions?.text || '',
-      user_answer_index: answer.selected_option_index,
-      correct_answer_index: answer.questions?.correct_option_index || 0,
-      is_correct: answer.is_correct || false,
-      time_spent_seconds: answer.time_spent_seconds || 0,
-    }));
+    const formattedAnswers: AnswerDetail[] = (answersData || []).map((answer: any) => {
+      const correctAnswerIndex = convertCorrectAnswerLetterToIndex(
+        answer.questions?.correct_answer || 'a'
+      );
+      return {
+        question_id: answer.question_id,
+        question_text: answer.questions?.question_text || '',
+        user_answer_index: parseInt(answer.selected_answer || '0', 10),
+        correct_answer_index: correctAnswerIndex,
+        is_correct: answer.is_correct || false,
+        time_spent_seconds: 0, // Not stored in new schema, calculated separately if needed
+        subject_id: answer.questions?.subject_id, // Include topic for weak areas
+      } as any;
+    });
 
     // Calculate total time
     const totalTimeMinutes = formattedAnswers.reduce((sum, a) => sum + a.time_spent_seconds, 0) / 60;
@@ -542,8 +537,7 @@ export async function getAttemptDetails(
       data: {
         attempt_id: attemptData.id,
         exam_id: attemptData.exam_id,
-        status: attemptData.status,
-        score: attemptData.status === 'completed' ? attemptData.score : undefined,
+        status: attemptData.is_completed ? 'completed' : 'in_progress',
         started_at: attemptData.started_at,
         completed_at: attemptData.completed_at || undefined,
         total_time_minutes: Math.round(totalTimeMinutes),
@@ -568,7 +562,7 @@ export async function getAttemptDetails(
 export async function getAnswerCount(attemptId: string): Promise<number> {
   const client = getSupabaseServiceClient();
   const { count } = await client
-    .from('exam_answers')
+    .from('user_exam_answers')
     .select('*', { count: 'exact' })
     .eq('attempt_id', attemptId);
   return count || 0;

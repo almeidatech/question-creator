@@ -72,7 +72,7 @@ export default function Dashboard() {
         <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              {t('dashboard.welcomeBack')} {user.first_name || 'Student'}!
+              {t('dashboard.welcomeBack')} {user.full_name?.split(' ')[0] || 'Student'}!
             </h1>
             <p className={`mt-2 text-lg ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               {t('dashboard.yourProgress')}

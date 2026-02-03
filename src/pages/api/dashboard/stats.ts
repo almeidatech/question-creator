@@ -1,4 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { verifyAuth } from '@/middleware/auth.middleware';
+import { getSupabaseServiceClient } from '@/services/database/supabase-client';
 
 interface DashboardStats {
   total_questions_attempted: number;
@@ -34,53 +36,60 @@ export default async function handler(
   }
 
   try {
-    // Get auth header to verify user is logged in
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
+    // Verify user is authenticated
+    const userId = verifyAuth(req);
+    if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    // Mock data - In production, this would query the database
-    // using the authenticated user's ID
+    const client = getSupabaseServiceClient();
+
+    // Get user's question history
+    const { data: historyData, error: historyError } = await client
+      .from('user_question_history')
+      .select('is_correct, created_at')
+      .eq('user_id', userId);
+
+    if (historyError) {
+      console.error('Error fetching user history:', historyError);
+      return res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+
+    // Calculate stats from history
+    const totalAttempts = historyData?.length || 0;
+    const correctCount = historyData?.filter(h => h.is_correct).length || 0;
+    const accuracyPercentage = totalAttempts > 0 ? (correctCount / totalAttempts) * 100 : 0;
+
     const stats: DashboardStats = {
-      total_questions_attempted: 47,
-      correct_count: 38,
-      accuracy_percentage: 80.85,
-      streak_days: 7,
+      total_questions_attempted: totalAttempts,
+      correct_count: correctCount,
+      accuracy_percentage: Math.round(accuracyPercentage * 100) / 100,
+      streak_days: 0, // TODO: Calculate from created_at dates
     };
 
-    // Last 7 days of activity
+    // Calculate activity for last 7 days
     const today = new Date();
-    const activity: ActivityData[] = Array.from({ length: 7 }, (_, i) => {
+    const activity: ActivityData[] = [];
+
+    for (let i = 0; i < 7; i++) {
       const date = new Date(today);
       date.setDate(date.getDate() - (6 - i));
-      return {
-        date: date.toISOString().split('T')[0],
-        questions: Math.floor(Math.random() * 12) + 1,
-      };
-    });
+      const dateStr = date.toISOString().split('T')[0];
 
-    // Topics with below 70% accuracy
-    const weakAreas: WeakArea[] = [
-      {
-        topic: 'React Hooks',
-        accuracy: 65,
-        total: 10,
-        correct: 6,
-      },
-      {
-        topic: 'TypeScript Generics',
-        accuracy: 55,
-        total: 9,
-        correct: 5,
-      },
-      {
-        topic: 'Database Design',
-        accuracy: 70,
-        total: 12,
-        correct: 8,
-      },
-    ];
+      const count = historyData?.filter(h => {
+        const attemptDate = new Date(h.created_at).toISOString().split('T')[0];
+        return attemptDate === dateStr;
+      }).length || 0;
+
+      activity.push({
+        date: dateStr,
+        questions: count,
+      });
+    }
+
+    // Get weak areas (topics with low accuracy)
+    // TODO: Enhance once question-topic relationships are properly implemented
+    const weakAreas: WeakArea[] = [];
 
     res.status(200).json({
       stats,

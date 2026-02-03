@@ -65,7 +65,9 @@ export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
           {user && (
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="hidden sm:block text-right text-sm">
-                <div className="font-medium">{user.first_name}</div>
+                <div className="font-medium">
+                  {user.full_name?.split(' ')[0] || 'User'}
+                </div>
                 <div
                   className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}
                 >

@@ -705,3 +705,16 @@ export type Tables<
       ? R
       : never
     : never;
+
+// Commonly used type exports for convenience
+export type User = Tables<'users'>;
+export type Question = Tables<'questions'>;
+export type Exam = Tables<'exams'>;
+export type UserExamAttempt = Tables<'user_exam_attempts'>;
+export type UserExamAnswer = Tables<'user_exam_answers'>;
+export type UserQuestionHistory = Tables<'user_question_history'>;
+export type QuestionFeedback = Tables<'question_feedback'>;
+export type QuestionReview = Tables<'question_reviews'>;
+export type Subject = Tables<'subjects'>;
+export type Topic = Tables<'topics'>;
+export type Domain = Tables<'domains'>;

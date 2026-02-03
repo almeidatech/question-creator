@@ -1,64 +1,59 @@
 import type { Config } from 'tailwindcss';
-import { colors, typography, spacing, shadowLevels, semanticSpacing } from './src/tokens';
 
 const config: Config = {
   content: [
+    './src/pages/**/*.{ts,tsx}',
     './src/components/**/*.{ts,tsx}',
-    './src/app/**/*.{ts,tsx}',
   ],
 
   theme: {
     extend: {
-      // Color palette integration
       colors: {
-        primary: colors.primary,
-        success: colors.success,
-        error: colors.error,
-        warning: colors.warning,
-        info: colors.info,
-        neutral: colors.neutral,
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c2d6b',
+        },
+        success: {
+          50: '#f0fdf4',
+          600: '#16a34a',
+          700: '#15803d',
+        },
+        error: {
+          50: '#fef2f2',
+          600: '#dc2626',
+          700: '#b91c1c',
+        },
+        warning: {
+          50: '#fffbeb',
+          600: '#d97706',
+          700: '#b45309',
+        },
+        info: {
+          50: '#f0f9ff',
+          600: '#0284c7',
+          700: '#0369a1',
+        },
+        neutral: {
+          50: '#f9fafb',
+          100: '#f3f4f6',
+          200: '#e5e7eb',
+          300: '#d1d5db',
+          400: '#9ca3af',
+          500: '#6b7280',
+          600: '#4b5563',
+          700: '#374151',
+          800: '#1f2937',
+          900: '#111827',
+        },
       },
-
-      // Font family integration
-      fontFamily: {
-        sans: typography.fontFamily.sans,
-        mono: typography.fontFamily.mono,
-      },
-
-      // Font size integration
-      fontSize: typography.fontSize,
-
-      // Font weight integration
-      fontWeight: typography.fontWeight,
-
-      // Line height integration
-      lineHeight: typography.lineHeight,
-
-      // Letter spacing integration
-      letterSpacing: typography.letterSpacing,
-
-      // Spacing integration (padding, margin, gap, etc.)
-      spacing,
-
-      // Border radius integration
-      borderRadius: semanticSpacing.borderRadius,
-
-      // Shadow integration
-      boxShadow: {
-        sm: shadowLevels.level1,
-        base: shadowLevels.level2,
-        md: shadowLevels.level3,
-        lg: shadowLevels.level4,
-        xl: shadowLevels.level5,
-        '2xl': shadowLevels.level6,
-        'inset': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
-        'focus': '0 0 0 3px rgba(59, 130, 246, 0.5)',
-      },
-
-      // Custom utilities
-      gap: spacing,
-      margin: spacing,
-      padding: spacing,
     },
   },
 

@@ -5,8 +5,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SignupSchema, SignupFormData } from '@/schemas/auth.schema';
 import { useAuthStore, useUIStore } from '@/stores';
-import { Button } from '@/components/ui/button';
-import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import {
+  Button,
+  Input,
+  Checkbox,
+  FormField,
+} from '@/components/ui';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 interface SignupFormProps {
   onSuccess?: () => void;
@@ -72,169 +77,127 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className={`space-y-4 max-w-md mx-auto p-6 rounded-lg ${
-        darkMode
-          ? 'bg-gray-800 text-gray-100'
-          : 'bg-white text-gray-900 border border-gray-200'
-      }`}
-    >
-      <h2 className="text-2xl font-bold mb-6">Create Account</h2>
-
-      {/* Email */}
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium mb-2">
-          Email Address
-        </label>
-        <input
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Email Field */}
+      <FormField
+        htmlFor="email"
+        label="Email Address"
+        errorMessage={errors.email?.message}
+        variant={errors.email ? 'error' : 'default'}
+        required
+      >
+        <Input
           id="email"
           type="email"
-          {...register('email')}
-          aria-invalid={errors.email ? 'true' : 'false'}
-          aria-describedby={errors.email ? 'email-error' : undefined}
-          className={`w-full px-3 py-2 rounded-md border transition-colors ${
-            errors.email
-              ? darkMode
-                ? 'border-red-500 bg-red-950'
-                : 'border-red-500 bg-red-50'
-              : darkMode
-                ? 'border-gray-600 bg-gray-700'
-                : 'border-gray-300 bg-white'
-          }`}
           placeholder="you@example.com"
+          {...register('email')}
         />
-        {errors.email && (
-          <p id="email-error" className="mt-1 text-sm text-red-500">
-            {errors.email.message}
-          </p>
-        )}
-      </div>
+      </FormField>
 
-      {/* Password */}
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium mb-2">
-          Password
-        </label>
+      {/* Password Field */}
+      <FormField
+        htmlFor="password"
+        label="Password"
+        errorMessage={errors.password?.message}
+        variant={errors.password ? 'error' : 'default'}
+        required
+      >
         <div className="relative">
-          <input
+          <Input
             id="password"
             type={showPassword ? 'text' : 'password'}
-            {...register('password')}
-            aria-invalid={errors.password ? 'true' : 'false'}
-            aria-describedby={errors.password ? 'password-error' : undefined}
-            className={`w-full px-3 py-2 rounded-md border transition-colors pr-10 ${
-              errors.password
-                ? darkMode
-                  ? 'border-red-500 bg-red-950'
-                  : 'border-red-500 bg-red-50'
-                : darkMode
-                  ? 'border-gray-600 bg-gray-700'
-                  : 'border-gray-300 bg-white'
-            }`}
             placeholder="••••••••"
+            {...register('password')}
+            className="pr-10"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className={`absolute right-3 top-2.5 p-1 rounded ${
-              darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'
+            className={`absolute right-3 top-3 p-1 rounded transition-colors ${
+              darkMode
+                ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
-        {password && (
-          <div className="mt-2 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-300 rounded-full h-1 overflow-hidden">
-                <div
-                  className={`h-full transition-all ${
-                    passwordStrength.level === 1
-                      ? 'w-1/4 bg-red-500'
-                      : passwordStrength.level === 2
-                        ? 'w-1/2 bg-yellow-500'
-                        : passwordStrength.level === 3
-                          ? 'w-3/4 bg-blue-500'
-                          : 'w-full bg-green-500'
-                  }`}
-                />
-              </div>
-              <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-                {passwordStrength.label}
-              </span>
-            </div>
-          </div>
-        )}
-        {errors.password && (
-          <p id="password-error" className="mt-1 text-sm text-red-500 flex items-center gap-1">
-            <AlertCircle size={16} />
-            {errors.password.message}
-          </p>
-        )}
-      </div>
+      </FormField>
 
-      {/* Confirm Password */}
-      <div>
-        <label htmlFor="confirm_password" className="block text-sm font-medium mb-2">
-          Confirm Password
-        </label>
+      {/* Password Strength Indicator */}
+      {password && (
+        <div className={`text-xs space-y-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className="flex items-center gap-2">
+            <div className={`flex-1 rounded-full h-1 overflow-hidden ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}>
+              <div
+                className={`h-full transition-all ${
+                  passwordStrength.level === 1
+                    ? 'w-1/4 bg-red-500'
+                    : passwordStrength.level === 2
+                      ? 'w-1/2 bg-yellow-500'
+                      : passwordStrength.level === 3
+                        ? 'w-3/4 bg-blue-500'
+                        : 'w-full bg-green-500'
+                }`}
+              />
+            </div>
+            <span>{passwordStrength.label}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Password Field */}
+      <FormField
+        htmlFor="confirm_password"
+        label="Confirm Password"
+        errorMessage={errors.confirm_password?.message}
+        variant={errors.confirm_password ? 'error' : 'default'}
+        required
+      >
         <div className="relative">
-          <input
+          <Input
             id="confirm_password"
             type={showConfirm ? 'text' : 'password'}
-            {...register('confirm_password')}
-            aria-invalid={errors.confirm_password ? 'true' : 'false'}
-            aria-describedby={errors.confirm_password ? 'confirm-error' : undefined}
-            className={`w-full px-3 py-2 rounded-md border transition-colors pr-10 ${
-              errors.confirm_password
-                ? darkMode
-                  ? 'border-red-500 bg-red-950'
-                  : 'border-red-500 bg-red-50'
-                : darkMode
-                  ? 'border-gray-600 bg-gray-700'
-                  : 'border-gray-300 bg-white'
-            }`}
             placeholder="••••••••"
+            {...register('confirm_password')}
+            className="pr-10"
           />
           <button
             type="button"
             onClick={() => setShowConfirm(!showConfirm)}
-            className={`absolute right-3 top-2.5 p-1 rounded ${
-              darkMode ? 'hover:bg-gray-600' : 'hover:bg-gray-100'
+            className={`absolute right-3 top-3 p-1 rounded transition-colors ${
+              darkMode
+                ? 'text-gray-400 hover:text-gray-300 hover:bg-gray-700'
+                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
             }`}
             aria-label={showConfirm ? 'Hide password' : 'Show password'}
           >
             {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>
         </div>
-        {errors.confirm_password && (
-          <p id="confirm-error" className="mt-1 text-sm text-red-500">
-            {errors.confirm_password.message}
-          </p>
-        )}
-      </div>
+      </FormField>
 
       {/* Terms of Service */}
-      <div className="flex items-center gap-2">
-        <input
+      <div className="flex items-center gap-3">
+        <Checkbox
           id="agreed_to_tos"
-          type="checkbox"
           {...register('agreed_to_tos')}
-          className="w-4 h-4 rounded border-gray-300 cursor-pointer"
-          aria-invalid={errors.agreed_to_tos ? 'true' : 'false'}
-          aria-describedby={errors.agreed_to_tos ? 'tos-error' : undefined}
         />
-        <label htmlFor="agreed_to_tos" className="text-sm cursor-pointer">
+        <label
+          htmlFor="agreed_to_tos"
+          className={`text-sm cursor-pointer font-medium ${
+            darkMode ? 'text-gray-300' : 'text-gray-700'
+          }`}
+        >
           I agree to the{' '}
-          <a href="/terms" className="text-blue-500 hover:underline">
+          <a href="/terms" className={`hover:underline ${darkMode ? 'text-primary-400' : 'text-primary-600'}`}>
             Terms of Service
           </a>
         </label>
       </div>
       {errors.agreed_to_tos && (
-        <p id="tos-error" className="text-sm text-red-500">
+        <p className={`text-sm ${darkMode ? 'text-red-400' : 'text-red-600'}`}>
           {errors.agreed_to_tos.message}
         </p>
       )}
@@ -243,14 +206,26 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
       <Button
         type="submit"
         disabled={!isValid || isSubmitting}
-        className="w-full"
+        fullWidth
+        isLoading={isSubmitting}
+        variant="primary"
       >
         {isSubmitting ? 'Creating account...' : 'Create Account'}
       </Button>
 
-      <p className={`text-sm text-center ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+      {/* Sign In Link */}
+      <p
+        className={`text-sm text-center ${
+          darkMode ? 'text-gray-400' : 'text-gray-600'
+        }`}
+      >
         Already have an account?{' '}
-        <a href="/auth/login" className="text-blue-500 hover:underline">
+        <a
+          href="/auth/login"
+          className={`font-medium hover:underline transition-colors ${
+            darkMode ? 'text-primary-400 hover:text-primary-300' : 'text-primary-600 hover:text-primary-700'
+          }`}
+        >
           Sign in
         </a>
       </p>

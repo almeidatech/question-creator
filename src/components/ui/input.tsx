@@ -45,6 +45,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     label,
     className = '',
     disabled = false,
+    id,
     ...props
   }, ref) => {
     // Base input styles
@@ -69,7 +70,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full">
         {label && (
-          <label className="block text-sm font-medium text-neutral-700 mb-2">
+          <label htmlFor={id} className="block text-sm font-medium text-neutral-700 mb-2">
             {label}
             {props.required && <span className="text-error-600 ml-1">*</span>}
           </label>
@@ -77,18 +78,19 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
         <input
           ref={ref}
+          id={id}
           className={finalInputClassName}
           disabled={disabled}
           {...(variant === 'error' ? { "aria-invalid": "true" } : {})}
           aria-describedby={
-            errorMessage ? `${props.id}-error` : helperText ? `${props.id}-helper` : undefined
+            errorMessage ? `${id}-error` : helperText ? `${id}-helper` : undefined
           }
           {...props}
         />
 
         {errorMessage && variant === 'error' && (
           <p
-            id={`${props.id}-error`}
+            id={`${id}-error`}
             className="mt-1 text-sm text-error-600"
             role="alert"
           >
@@ -98,7 +100,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
         {helperText && variant !== 'error' && (
           <p
-            id={`${props.id}-helper`}
+            id={`${id}-helper`}
             className="mt-1 text-sm text-neutral-500"
           >
             {helperText}
@@ -110,3 +112,4 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 );
 
 Input.displayName = 'Input';
+

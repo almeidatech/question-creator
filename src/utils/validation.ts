@@ -39,7 +39,7 @@ export type LoginInput = z.infer<typeof LoginSchema>;
 export function validateSignup(data: unknown): { valid: true; data: SignupInput } | { valid: false; error: string } {
   const result = SignupSchema.safeParse(data);
   if (!result.success) {
-    const firstError = result.error.errors?.[0];
+    const firstError = result.error.issues[0];
     const errorMessage = firstError?.message || 'Validation failed';
     return { valid: false, error: errorMessage };
   }
@@ -52,9 +52,10 @@ export function validateSignup(data: unknown): { valid: true; data: SignupInput 
 export function validateLogin(data: unknown): { valid: true; data: LoginInput } | { valid: false; error: string } {
   const result = LoginSchema.safeParse(data);
   if (!result.success) {
-    const firstError = result.error.errors?.[0];
+    const firstError = result.error.issues[0];
     const errorMessage = firstError?.message || 'Validation failed';
     return { valid: false, error: errorMessage };
   }
   return { valid: true, data: result.data };
 }
+

@@ -83,6 +83,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={finalClassName}
         disabled={disabled || isLoading}
         {...(isLoading ? { "aria-busy": "true" } : {})}
+        {...(disabled || isLoading ? { "aria-disabled": "true" } : {})}
         {...props}
       >
         {isLoading ? (
@@ -119,3 +120,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = 'Button';
+

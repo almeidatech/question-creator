@@ -1,9 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { verifyAuth } from '@/src/middleware/auth.middleware';
-import { ScoringService } from '@/src/services/analytics/scoring.service';
+import { verifyAuth } from '@/middleware/auth.middleware';
+import { ScoringService } from '@/services/analytics/scoring.service';
 
 /**
- * GET /api/attempts/[id]/time-analysis
+ * GET /api/attempts/[attemptId]/time-analysis
  * Get time analysis for a specific exam attempt
  *
  * Response:
@@ -29,7 +29,7 @@ export default async function handler(
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { id: attemptId } = req.query;
+    const { attemptId } = req.query;
 
     if (!attemptId || typeof attemptId !== 'string') {
       return res.status(400).json({ error: 'Invalid attempt ID' });

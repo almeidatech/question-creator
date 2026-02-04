@@ -49,7 +49,7 @@ export default async function handler(
 
   try {
     // Step 1: Verify authentication
-    const userId = verifyAuth(req);
+    const userId = await verifyAuth(req);
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized - missing or invalid token' });
     }

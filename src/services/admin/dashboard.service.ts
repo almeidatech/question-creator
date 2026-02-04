@@ -224,7 +224,7 @@ export async function getRecentImports(): Promise<ImportHistoryItem[]> {
 
     const { data, error } = await client
       .from('question_imports')
-      .select('id, filename, status, created_at, completed_at, total_rows, successful_imports, duplicate_count, error_count')
+      .select('id, csv_filename, status, created_at, completed_at, total_rows, successful_imports, duplicate_count, error_count')
       .order('created_at', { ascending: false })
       .limit(10);
 
@@ -235,7 +235,7 @@ export async function getRecentImports(): Promise<ImportHistoryItem[]> {
 
     return (data || []).map((item: any) => ({
       id: item.id,
-      filename: item.filename,
+      filename: item.csv_filename,
       status: item.status,
       created_at: item.created_at,
       completed_at: item.completed_at,

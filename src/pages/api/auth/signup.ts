@@ -15,6 +15,8 @@ interface SignupResponse {
   token_type?: 'Bearer';
   expires_in?: number;
   error?: string;
+  message?: string;
+  verification_required?: boolean;
 }
 
 export default async function handler(
@@ -56,6 +58,14 @@ export default async function handler(
     const result = await AuthService.signup({ email, password });
 
     if (!result.success) {
+      if (result.code === 'EMAIL_VERIFICATION_REQUIRED') {
+        // Successfully created user, but requires verification
+        return res.status(201).json({ 
+          message: result.error,
+          verification_required: true 
+        });
+      }
+
       // Map error codes to HTTP status
       const statusCode = result.code === 'EMAIL_EXISTS' ? 409 : 400;
       return res.status(statusCode).json({ error: result.error });

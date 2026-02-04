@@ -54,14 +54,29 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
       });
 
       if (!response.ok) {
-        setSubmitError(t('messages.invalidCredentials'));
-        throw new Error(t('messages.invalidCredentials'));
+        const error = await response.json();
+        setSubmitError(error.error || t('messages.invalidCredentials'));
+        return;
       }
 
       const result = await response.json();
-      setUser(result.user);
-      setToken(result.token);
+
+      // API returns user_id and access_token, need to map to store format
+      // We'll fetch the full user profile after login, for now create basic user object
+      const user = {
+        id: result.user_id,
+        email: data.email,
+        full_name: null,
+        user_role: 'student', // Will be updated after fetching profile
+        subscription_tier: 'free',
+        avatar_url: null,
+        is_active: true,
+      };
+
+      setUser(user);
+      setToken(result.access_token);
       setRememberMe(data.rememberMe);
+      console.log('[LoginForm] User and token saved to store');
 
       onSuccess?.();
     } catch (error) {

@@ -30,13 +30,13 @@ export interface AuthResult {
 /**
  * Validate JWT token from request
  */
-export function validateAuthToken(authHeader: string | undefined): AuthResult {
+export async function validateAuthToken(authHeader: string | undefined): Promise<AuthResult> {
   const token = extractToken(authHeader);
   if (!token) {
     return { authenticated: false, error: 'Missing bearer token' };
   }
 
-  const verification = AuthService.verifyToken(token);
+  const verification = await AuthService.verifyToken(token);
   if (!verification.valid) {
     return { authenticated: false, error: verification.error };
   }
@@ -53,9 +53,16 @@ export function validateAuthToken(authHeader: string | undefined): AuthResult {
  * Convenience function for API route handlers
  * Returns null if request is not authenticated
  */
-export function verifyAuth(req: NextApiRequest): string | null {
+export async function verifyAuth(req: NextApiRequest): Promise<string | null> {
   const authHeader = req.headers.authorization as string | undefined;
-  const result = validateAuthToken(authHeader);
+  console.log('[verifyAuth] Authorization header present:', !!authHeader);
+
+  const result = await validateAuthToken(authHeader);
+  console.log('[verifyAuth] Authentication result:', {
+    authenticated: result.authenticated,
+    hasUserId: !!result.userId,
+    error: result.error
+  });
 
   if (!result.authenticated || !result.userId) {
     return null;

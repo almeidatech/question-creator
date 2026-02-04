@@ -22,7 +22,8 @@
     "created": "Created",
     "updated": "Updated",
     "deleted": "Deleted",
-    "all": "All"
+    "all": "All",
+    "refresh": "Refresh"
   },
   "auth": {
     "login": "Login",
@@ -55,7 +56,7 @@
     "resetPassword": "Reset Password",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
-    "checkEmail": "Check your email",
+    "checkEmail": "Check your email for confirmation",
     "checkEmailMessage": "We sent a recovery code to {{email}}",
     "enterCode": "Enter the recovery code"
   },
@@ -246,7 +247,9 @@
   },
   "messages": {
     "loginSuccess": "Login successful!",
+    "loginFailed": "Login failed. Please check your credentials.",
     "signupSuccess": "Account created successfully!",
+    "signupFailed": "Failed to create account. Please try again.",
     "recoverySuccess": "Password recovered successfully!",
     "examCreated": "Exam created successfully!",
     "examDeleted": "Exam deleted",
@@ -266,6 +269,8 @@
   },
   "admin": {
     "dashboard": "Admin Dashboard",
+    "dashboardDescription": "System overview and statistics",
+    "loading": "Loading...",
     "reviewQueue": "Review Queue",
     "metrics": "Metrics",
     "users": "Users",
@@ -285,7 +290,24 @@
     "viewReports": "View Reports",
     "systemHealth": "System Health",
     "uptime": "Uptime",
-    "performance": "Performance"
+    "performance": "Performance",
+    "systemOverview": "System Overview",
+    "lastUpdated": "Last updated",
+    "importHistory": "Import History",
+    "questionReviewQueue": "Question Review Queue",
+    "completedImports": "Completed Imports",
+    "databaseHealth": "Database Health",
+    "importCount": "Total Imports",
+    "searchByFilename": "Search by filename",
+    "filterByStatus": "Filter by status",
+    "allStatuses": "All statuses",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "failed": "Failed",
+    "queued": "Queued",
+    "pending": "Pending",
+    "noImportsFound": "No imports found",
+    "noQuestionsForReview": "No questions to review"
   },
   "pages": {
     "redirecting": "Redirecting...",

@@ -22,7 +22,8 @@
     "created": "Criado",
     "updated": "Atualizado",
     "deleted": "Deletado",
-    "all": "Todos"
+    "all": "Todos",
+    "refresh": "Atualizar"
   },
   "auth": {
     "login": "Entrar",
@@ -55,7 +56,7 @@
     "resetPassword": "Redefinir Senha",
     "showPassword": "Mostrar senha",
     "hidePassword": "Ocultar senha",
-    "checkEmail": "Verifique seu email",
+    "checkEmail": "Verifique seu email para confirmar a conta",
     "checkEmailMessage": "Enviamos um código de recuperação para {{email}}",
     "enterCode": "Digite o código de recuperação"
   },
@@ -246,7 +247,9 @@
   },
   "messages": {
     "loginSuccess": "Login realizado com sucesso!",
+    "loginFailed": "Falha no login. Verifique suas credenciais.",
     "signupSuccess": "Conta criada com sucesso!",
+    "signupFailed": "Falha ao criar conta. Tente novamente.",
     "recoverySuccess": "Senha recuperada com sucesso!",
     "examCreated": "Prova criada com sucesso!",
     "examDeleted": "Prova deletada",
@@ -266,6 +269,8 @@
   },
   "admin": {
     "dashboard": "Painel Admin",
+    "dashboardDescription": "Visão geral do sistema e estatísticas",
+    "loading": "Carregando...",
     "reviewQueue": "Fila de Revisão",
     "metrics": "Métricas",
     "users": "Usuários",
@@ -285,7 +290,24 @@
     "viewReports": "Ver Relatórios",
     "systemHealth": "Saúde do Sistema",
     "uptime": "Tempo de Funcionamento",
-    "performance": "Desempenho"
+    "performance": "Desempenho",
+    "systemOverview": "Visão Geral do Sistema",
+    "lastUpdated": "Última atualização",
+    "importHistory": "Histórico de Importações",
+    "questionReviewQueue": "Fila de Revisão de Questões",
+    "completedImports": "Importações Concluídas",
+    "databaseHealth": "Saúde do Banco de Dados",
+    "importCount": "Total de Importações",
+    "searchByFilename": "Buscar por nome do arquivo",
+    "filterByStatus": "Filtrar por status",
+    "allStatuses": "Todos os status",
+    "completed": "Concluído",
+    "inProgress": "Em progresso",
+    "failed": "Falhou",
+    "queued": "Na fila",
+    "pending": "Pendente",
+    "noImportsFound": "Nenhuma importação encontrada",
+    "noQuestionsForReview": "Nenhuma questão para revisar"
   },
   "pages": {
     "redirecting": "Redirecionando...",

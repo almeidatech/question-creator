@@ -57,9 +57,10 @@ export interface ReviewDecisionResponse {
 
 /**
  * Verify user is admin
+ * Uses service client to bypass RLS and get real-time role from database
  */
 export async function verifyAdminAccess(userId: string): Promise<boolean> {
-  const client = getSupabaseClient();
+  const client = getSupabaseServiceClient();
 
   const { data, error } = await client
     .from('users')
@@ -72,6 +73,7 @@ export async function verifyAdminAccess(userId: string): Promise<boolean> {
     return false;
   }
 
+  console.log('[verifyAdminAccess] User role:', data?.user_role, 'for user:', userId);
   return data?.user_role === 'admin';
 }
 

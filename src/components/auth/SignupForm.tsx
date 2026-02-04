@@ -69,16 +69,41 @@ export const SignupForm: React.FC<SignupFormProps> = ({ onSuccess }) => {
         }),
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        throw new Error(t('messages.signupFailed'));
+        // Show specific error from API, or fallback to generic message
+        const errorMessage = result.error || t('messages.signupFailed');
+        alert(errorMessage);
+        console.error('Signup error:', errorMessage);
+        return;
       }
 
-      const result = await response.json();
-      setUser(result.user);
-      setToken(result.token);
+      if (result.verification_required) {
+        alert(t('auth.checkEmail')); // Or use a proper UI notification
+        onSuccess?.();
+        return;
+      }
+
+      // API returns user_id and access_token, need to map to store format
+      const user = {
+        id: result.user_id,
+        email: result.email || data.email,
+        full_name: null,
+        user_role: 'student',
+        subscription_tier: 'free',
+        avatar_url: null,
+        is_active: true,
+      };
+
+      setUser(user);
+      setToken(result.access_token);
+      console.log('[SignupForm] User and token saved to store');
 
       onSuccess?.();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : t('messages.signupFailed');
+      alert(errorMessage);
       console.error('Signup failed:', error);
     } finally {
       setIsSubmitting(false);

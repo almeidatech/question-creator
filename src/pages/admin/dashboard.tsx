@@ -15,6 +15,7 @@ import { useRouter } from 'next/router';
 import { Layout } from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/i18n/i18nContext';
+import { useAuthStore } from '@/stores';
 import { SystemMetrics } from '@/components/admin/SystemMetrics';
 import { ImportHistory } from '@/components/admin/ImportHistory';
 import { ReviewQueuePanel } from '@/components/admin/ReviewQueuePanel';
@@ -33,6 +34,7 @@ interface DashboardState {
 export default function AdminDashboard() {
   const router = useRouter();
   const { t } = useI18n();
+  const { token } = useAuthStore();
   const [state, setState] = useState<DashboardState>({
     stats: null,
     reviewQueue: [],
@@ -45,17 +47,24 @@ export default function AdminDashboard() {
 
   // Fetch dashboard data
   const fetchDashboard = async () => {
+    if (!token) {
+      console.error('[AdminDashboard] No token available');
+      router.push('/auth/login');
+      return;
+    }
+
     try {
       setIsRefreshing(true);
+      console.log('[AdminDashboard] Fetching with token:', token.substring(0, 20) + '...');
       const [dashRes, reviewRes] = await Promise.all([
         fetch('/api/admin/dashboard?refresh=true', {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            Authorization: `Bearer ${token}`,
           },
         }),
         fetch('/api/admin/review-queue', {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+            Authorization: `Bearer ${token}`,
           },
         }),
       ]);
@@ -98,8 +107,12 @@ export default function AdminDashboard() {
     decision: 'approve' | 'reject',
     notes: string = ''
   ) => {
+    if (!token) {
+      console.error('[AdminDashboard] No token for review decision');
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('auth_token');
       const response = await fetch('/api/admin/reviews', {
         method: 'POST',
         headers: {
